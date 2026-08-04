@@ -10,10 +10,6 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Date lipsa" }, { status: 400 });
     }
 
-    // 1. Salvam reclamatia in baza de date -- asta ramane si daca emailul esueaza mai jos.
-    //    Nota: UI-ul foloseste un singur camp liber "Nume / Telefon / Email", deci il
-    //    salvam in contact_name. Daca vrei 3 campuri separate in formular, spune-mi si
-    //    despartim UI-ul + logica de aici in mod corespunzator.
     const { data: complaint, error: dbError } = await supabaseAdmin
       .from("complaints")
       .insert({
@@ -26,7 +22,6 @@ export async function POST(req: Request) {
 
     if (dbError) throw dbError;
 
-    // 2. Luam numele si emailul de alerta ale restaurantului
     const { data: restaurant, error: restError } = await supabaseAdmin
       .from("restaurants")
       .select("name, alert_email")
@@ -38,11 +33,9 @@ export async function POST(req: Request) {
       return NextResponse.json({ success: true, complaintId: complaint.id });
     }
 
-    // 3. Trimitem emailul. Daca esueaza, NU intoarcem eroare catre client --
-    //    reclamatia e deja salvata in baza de date, e mai important sa nu
-    //    aratam un ecran de eroare cuiva care tocmai s-a plans.
     try {
-      await resend.emails.send({
+      console.log("Incerc sa trimit email catre:", restaurant.alert_email);
+      const { data: emailData, error: emailError } = await resend.emails.send({
         from: process.env.RESEND_FROM_EMAIL || "feedback@resend.dev",
         to: restaurant.alert_email,
         subject: `Reclamație nouă — ${restaurant.name}`,
@@ -55,8 +48,14 @@ export async function POST(req: Request) {
           `Contact lăsat de client: ${contact?.trim() || "(nu a lăsat date de contact)"}`,
         ].join("\n"),
       });
-    } catch (emailError) {
-      console.error("Reclamatia s-a salvat, dar emailul nu a putut fi trimis:", emailError);
+
+      if (emailError) {
+        console.error("Resend a raspuns cu o eroare:", JSON.stringify(emailError));
+      } else {
+        console.log("Email trimis cu succes, id:", emailData?.id);
+      }
+    } catch (emailException) {
+      console.error("Reclamatia s-a salvat, dar emailul a aruncat o exceptie:", emailException);
     }
 
     return NextResponse.json({ success: true, complaintId: complaint.id });
