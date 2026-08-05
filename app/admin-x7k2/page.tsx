@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { getServerClient } from "@/lib/supabase-server";
-import { createRestaurant, toggleRestaurantActive, signOut } from "./actions";
+import { createRestaurant, signOut } from "./actions";
+import ToggleActiveButton from "./toggle-active-button";
 
 export const dynamic = "force-dynamic";
 
@@ -15,8 +16,6 @@ export default async function AdminHome() {
     redirect("/admin-x7k2/login");
   }
 
-  // is_admin() e functia SECURITY DEFINER din schema -- verifica daca
-  // user-ul curent e in tabela admins, indiferent de RLS pe admins.
   const { data: isAdmin } = await supabase.rpc("is_admin");
 
   if (!isAdmin) {
@@ -73,18 +72,11 @@ export default async function AdminHome() {
                     /r/{r.slug} · {r.alert_email}
                   </div>
                 </div>
-                <form action={toggleRestaurantActive.bind(null, r.id, !r.is_active)}>
-                  <button
-                    type="submit"
-                    style={{
-                      ...statusPillStyle,
-                      color: r.is_active ? "#8FD3A0" : "#E0A88C",
-                      borderColor: r.is_active ? "rgba(143,211,160,0.35)" : "rgba(224,168,140,0.35)",
-                    }}
-                  >
-                    {r.is_active ? "Activ" : "Inactiv"}
-                  </button>
-                </form>
+                <ToggleActiveButton
+                  restaurantId={r.id}
+                  name={r.name}
+                  isActive={r.is_active}
+                />
               </div>
             ))}
           </div>
@@ -156,13 +148,4 @@ const restaurantRowStyle: React.CSSProperties = {
   padding: "10px 12px",
   background: "rgba(255,255,255,0.02)",
   borderRadius: 10,
-};
-
-const statusPillStyle: React.CSSProperties = {
-  fontSize: 11,
-  padding: "5px 10px",
-  borderRadius: 999,
-  border: "1px solid",
-  background: "transparent",
-  cursor: "pointer",
 };
