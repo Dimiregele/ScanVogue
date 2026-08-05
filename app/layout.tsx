@@ -21,27 +21,16 @@ export default function RootLayout({
       <body
         style={{
           margin: 0,
-          padding: "16px", // Adaugă spațiu ca cardul să nu atingă marginea ecranului
+          padding: "16px",
           minHeight: "100vh",
+          boxSizing: "border-box",
           display: "flex",
           justifyContent: "center",
           alignItems: "center",
-          backgroundColor: "#000",
-          boxSizing: "border-box",
-          overflowX: "hidden", // Previne scroll-ul orizontal nedorit
+          backgroundColor: "#0a0a0a", // Fundalul întunecat al paginii
         }}
       >
-        {/* Un wrapper responsive care strânge cardul */}
-        <div
-          style={{
-            width: "100%",
-            maxWidth: "400px", // Ajustează valoarea dacă vrei să fie mai lat/îngust pe desktop
-            display: "flex",
-            justifyContent: "center",
-          }}
-        >
-          {children}
-        </div>
+        {children}
       </body>
     </html>
   );
