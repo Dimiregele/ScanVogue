@@ -18,19 +18,20 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="ro" style={{ height: "100%", margin: 0, padding: 0 }}>
+    <html lang="ro" style={{ height: "100%", width: "100%", margin: 0, padding: 0 }}>
       <body
         style={{
           margin: 0,
           padding: "16px",
-          width: "100%",
+          width: "100vw",
           minHeight: "100vh",
-          height: "100dvh", // Rezolvă bug-ul de centrare verticală din Safari pe iPhone
+          height: "100dvh",
           boxSizing: "border-box",
-          display: "grid",
-          placeItems: "center", // Centrează absolut totul fix în mijlocul ecranului
-          backgroundColor: "#000000",
-          overflowX: "hidden",
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          backgroundColor: "#050505",
+          overflow: "hidden", // Previne apariția scroll-ului din cauza marginilor/colțurilor
         }}
       >
         {children}
