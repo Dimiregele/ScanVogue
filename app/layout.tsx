@@ -18,20 +18,15 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="ro" style={{ height: "100%", width: "100%", margin: 0, padding: 0 }}>
+    <html lang="ro" style={{ margin: 0, padding: 0, height: "100%", width: "100%" }}>
       <body
         style={{
           margin: 0,
-          padding: "16px",
-          width: "100vw",
-          minHeight: "100vh",
-          height: "100dvh",
-          boxSizing: "border-box",
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
+          padding: 0,
+          width: "100%",
+          height: "100%",
           backgroundColor: "#050505",
-          overflow: "hidden", // Previne apariția scroll-ului din cauza marginilor/colțurilor
+          overflow: "hidden",
         }}
       >
         {children}
