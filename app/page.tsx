@@ -2,9 +2,10 @@ export default function Home() {
   return (
     <main
       style={{
+        position: "relative",
         width: "100%",
-        maxWidth: "360px", // Lățime perfectă pentru telefoane
-        height: "auto", // Permite cardului să se lungească dacă fontul e mare
+        maxWidth: "360px", // Previne extinderea pe ecrane mari
+        height: "auto", // Se extinde automat pe verticală dacă textul/fontul e mai mare
         padding: "32px 20px",
         borderRadius: "24px",
         backgroundColor: "#121212",
@@ -14,16 +15,41 @@ export default function Home() {
         flexDirection: "column",
         alignItems: "center",
         textAlign: "center",
-        boxShadow: "0 10px 30px rgba(0, 0, 0, 0.5)",
+        boxShadow: "0 10px 30px rgba(0, 0, 0, 0.8)",
       }}
     >
+      {/* Colțurile aurii decorative (dacă le folosești) */}
+      <div
+        style={{
+          position: "absolute",
+          top: "-6px",
+          left: "-6px",
+          width: "20px",
+          height: "20px",
+          borderTop: "2px solid #d4af37",
+          borderLeft: "2px solid #d4af37",
+        }}
+      />
+      <div
+        style={{
+          position: "absolute",
+          bottom: "-6px",
+          right: "-6px",
+          width: "20px",
+          height: "20px",
+          borderBottom: "2px solid #d4af37",
+          borderRight: "2px solid #d4af37",
+        }}
+      />
+
       {/* Titlu Restaurant */}
       <h1
         style={{
           color: "#f5f5f5",
           fontFamily: "serif",
-          fontSize: "1.6rem",
+          fontSize: "1.5rem",
           letterSpacing: "2px",
+          marginTop: 0,
           marginBottom: "20px",
           fontWeight: "normal",
         }}
@@ -35,8 +61,9 @@ export default function Home() {
       <p
         style={{
           color: "#e0e0e0",
-          fontSize: "1.05rem",
+          fontSize: "1rem",
           lineHeight: "1.4",
+          marginTop: 0,
           marginBottom: "28px",
         }}
       >
