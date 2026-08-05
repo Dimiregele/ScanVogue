@@ -18,7 +18,18 @@ export default function RootLayout({
 }) {
   return (
     <html lang="ro">
-      <body style={{ margin: 0 }}>{children}</body>
+      <body
+        style={{
+          margin: 0,
+          minHeight: "100vh",
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          backgroundColor: "#000", // sau culoarea ta de fundal
+        }}
+      >
+        {children}
+      </body>
     </html>
   );
 }
