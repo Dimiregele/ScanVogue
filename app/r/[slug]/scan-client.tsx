@@ -272,7 +272,7 @@ export default function ScanClient({ restaurant, scanId }: { restaurant: Restaur
   return (
     <div
       style={{
-        minHeight: "100vh",
+        minHeight: "100dvh",
         width: "100%",
         display: "flex",
         alignItems: "center",
