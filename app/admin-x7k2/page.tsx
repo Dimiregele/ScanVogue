@@ -87,7 +87,7 @@ export default async function AdminHome() {
 }
 
 const pageStyle: React.CSSProperties = {
-  minHeight: "100vh",
+  minHeight: "100dvh",
   background: "#0B0A08",
   fontFamily: "system-ui, sans-serif",
   padding: "40px 20px",
