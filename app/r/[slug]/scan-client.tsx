@@ -57,7 +57,7 @@ type Restaurant = {
 };
 
 async function updateScan(scanId: string | null, body: Record<string, unknown>) {
-  if (!scanId) return; // scanarea n-a putut fi logata initial -- nu blocam userul din cauza asta
+  if (!scanId) return;
   try {
     await fetch("/api/scan", {
       method: "PATCH",
@@ -184,56 +184,20 @@ function SuccessCheck() {
   );
 }
 
-function StarRating({ value, onSelect, size = 26 }: { value: number; onSelect: (n: number) => void; size?: number }) {
-  const [hover, setHover] = useState(0);
-  return (
-    <div style={{ display: "flex", gap: 6, justifyContent: "center" }}>
-      {[1, 2, 3, 4, 5].map((n) => {
-        const filled = (hover || value) >= n;
-        return (
-          <button
-            key={n}
-            type="button"
-            onClick={() => onSelect(n)}
-            onMouseEnter={() => setHover(n)}
-            onMouseLeave={() => setHover(0)}
-            className="onyx-btn"
-            style={{ background: "none", border: "none", cursor: "pointer", padding: 2, lineHeight: 0 }}
-            aria-label={`${n} stele`}
-          >
-            <Star size={size} color={COLORS.gold} fill={filled ? COLORS.gold : "none"} strokeWidth={1.5} style={{ transition: "transform 0.15s ease, fill 0.15s ease", transform: filled ? "scale(1.08)" : "scale(1)" }} />
-          </button>
-        );
-      })}
-    </div>
-  );
-}
-
-type View = "initial" | "rating-positive" | "negative-form" | "thanks-negative" | "redirecting";
+type View = "initial" | "negative-form" | "thanks-negative" | "redirecting";
 
 export default function ScanClient({ restaurant, scanId }: { restaurant: Restaurant; scanId: string | null }) {
   const [view, setView] = useState<View>("initial");
   const [message, setMessage] = useState("");
   const [contact, setContact] = useState("");
   const [submitting, setSubmitting] = useState(false);
-  const [rating, setRating] = useState(0);
 
   const handlePositive = () => {
     updateScan(scanId, { choice: "positive" });
-    setView("rating-positive");
-  };
-
-  const goToGoogle = () => {
     setView("redirecting");
     setTimeout(() => {
       window.location.href = restaurant.googleReviewUrl;
-    }, 900); // mica pauza pt animatia de tranzitie, apoi redirect real
-  };
-
-  const handleStarTap = (n: number) => {
-    setRating(n);
-    updateScan(scanId, { rating: n });
-    setTimeout(goToGoogle, 350);
+    }, 700);
   };
 
   const handleSubmitComplaint = async (e: React.FormEvent) => {
@@ -255,18 +219,10 @@ export default function ScanClient({ restaurant, scanId }: { restaurant: Restaur
       setView("thanks-negative");
     } catch (err) {
       console.error(err);
-      // Chiar daca ceva a esuat la nivel de retea, nu blocam userul cu un ecran de eroare tehnica --
-      // afisam tot ecranul de multumire (mesajul e important sa se simta primit), dar merita monitorizat
-      // in productie (ex: Sentry) ca sa stii daca reclamatiile chiar ajung in baza de date.
       setView("thanks-negative");
     } finally {
       setSubmitting(false);
     }
-  };
-
-  const handleNegativeStarTap = (n: number) => {
-    setRating(n);
-    updateScan(scanId, { rating: n });
   };
 
   return (
@@ -320,25 +276,6 @@ export default function ScanClient({ restaurant, scanId }: { restaurant: Restaur
               </div>
             )}
 
-            {view === "rating-positive" && (
-              <div style={{ textAlign: "center" }}>
-                <p className="onyx-fade-1" style={{ color: COLORS.textPrimary, fontSize: 16, marginBottom: 4, fontWeight: 500 }}>
-                  Mulțumim!
-                </p>
-                <p className="onyx-fade-1" style={{ color: COLORS.textMuted, fontSize: 13.5, marginBottom: 22 }}>
-                  Câte stele ne-ai da? (opțional)
-                </p>
-                <div className="onyx-fade-2" style={{ marginBottom: 26 }}>
-                  <StarRating value={rating} onSelect={handleStarTap} />
-                </div>
-                <div className="onyx-fade-3">
-                  <PrimaryButton onClick={goToGoogle} icon={<ArrowUpRight size={15} strokeWidth={2} />}>
-                    Continuă spre Google
-                  </PrimaryButton>
-                </div>
-              </div>
-            )}
-
             {view === "negative-form" && (
               <form onSubmit={handleSubmitComplaint}>
                 <p className="onyx-fade-1" style={{ textAlign: "center", color: COLORS.textPrimary, fontSize: 16, marginBottom: 4, fontWeight: 500 }}>
@@ -379,14 +316,11 @@ export default function ScanClient({ restaurant, scanId }: { restaurant: Restaur
                 <p className="onyx-fade-1" style={{ color: COLORS.textPrimary, fontSize: 16, marginBottom: 8, fontWeight: 500 }}>
                   Mulțumim, mesajul tău a ajuns la echipa noastră!
                 </p>
-                <p className="onyx-fade-2" style={{ color: COLORS.textMuted, fontSize: 13.5, marginBottom: 22, lineHeight: 1.5 }}>
+                <p className="onyx-fade-2" style={{ color: COLORS.textMuted, fontSize: 13.5, marginBottom: 26, lineHeight: 1.5 }}>
                   Cineva din echipă te va contacta dacă ai lăsat datele tale de contact.
                 </p>
-                <div className="onyx-fade-2" style={{ marginBottom: 26 }}>
-                  <StarRating value={rating} onSelect={handleNegativeStarTap} size={22} />
-                </div>
                 <div className="onyx-fade-3">
-                  <a
+                  
                     href={restaurant.googleReviewUrl}
                     className="onyx-link"
                     style={{ display: "inline-flex", alignItems: "center", gap: 6, border: "1px solid rgba(255,255,255,0.12)", color: "#C9C2B4", borderRadius: 14, padding: "12px 22px", fontSize: 13.5, textDecoration: "none" }}
