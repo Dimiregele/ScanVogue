@@ -2,6 +2,7 @@
 
 import { redirect } from "next/navigation";
 import { getServerClient } from "@/lib/supabase-server";
+import { supabaseAdmin } from "@/lib/supabase";
 
 function slugify(name: string): string {
   return name
@@ -10,6 +11,21 @@ function slugify(name: string): string {
     .replace(/[\u0300-\u036f]/g, "") // scoate diacriticele
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/(^-|-$)/g, "");
+}
+
+// Creeaza automat contul Supabase Auth pentru adresa de alerta a
+// restaurantului, fara parola -- accesul in /gest-x4p7 se face doar prin
+// cod trimis pe email. Daca exista deja un cont cu acest email (acelasi
+// proprietar la mai multe locatii, sau reincercare), nu tratam ca eroare.
+async function ensureOwnerAccount(email: string) {
+  const { error } = await supabaseAdmin.auth.admin.createUser({
+    email,
+    email_confirm: true,
+  });
+
+  if (error && !/already been registered|already exists/i.test(error.message)) {
+    console.error("Nu am putut crea contul proprietarului:", error);
+  }
 }
 
 export async function createRestaurant(formData: FormData) {
@@ -51,6 +67,8 @@ export async function createRestaurant(formData: FormData) {
       throw error;
     }
   }
+
+  await ensureOwnerAccount(alertEmail);
 
   redirect("/admin-x7k2");
 }

@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import { headers } from "next/headers";
 import { getServerClient } from "@/lib/supabase-server";
 import { createRestaurant, signOut } from "./actions";
 import ToggleActiveButton from "./toggle-active-button";
@@ -36,6 +37,9 @@ export default async function AdminHome() {
     .select("id, name, slug, is_active, alert_email, created_at")
     .order("created_at", { ascending: false });
 
+  const host = (await headers()).get("host");
+  const ownerLoginUrl = `https://${host}/gest-x4p7/login`;
+
   return (
     <div style={pageStyle}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 32 }}>
@@ -47,6 +51,16 @@ export default async function AdminHome() {
         </form>
       </div>
 
+      <section style={{ ...cardStyle, marginBottom: 24 }}>
+        <h2 style={sectionTitleStyle}>Link panou proprietari</h2>
+        <p style={{ color: "#9C9382", fontSize: 13, lineHeight: 1.6, margin: "0 0 10px" }}>
+          Același link pentru toate restaurantele — trimite-l fiecărei firme noi.
+          Se loghează cu adresa de email pusă mai jos la &quot;Email pentru alerte
+          reclamații&quot;, fără parolă (primesc un cod pe email).
+        </p>
+        <code style={ownerLinkStyle}>{ownerLoginUrl}</code>
+      </section>
+
       <section style={cardStyle}>
         <h2 style={sectionTitleStyle}>Adaugă restaurant nou</h2>
         <form action={createRestaurant} style={{ display: "flex", flexDirection: "column", gap: 10 }}>
@@ -56,6 +70,10 @@ export default async function AdminHome() {
           <input name="alertEmail" type="email" placeholder="Email pentru alerte reclamații *" required style={inputStyle} />
           <button type="submit" style={primaryButtonStyle}>Adaugă restaurant</button>
         </form>
+        <p style={{ color: "#9C9382", fontSize: 12, marginTop: 10, marginBottom: 0, lineHeight: 1.5 }}>
+          La salvare, contul de proprietar pentru acest email se creează automat —
+          nu mai e nevoie de niciun pas separat.
+        </p>
       </section>
 
       <section style={{ ...cardStyle, marginTop: 24 }}>
@@ -148,4 +166,15 @@ const restaurantRowStyle: React.CSSProperties = {
   padding: "10px 12px",
   background: "rgba(255,255,255,0.02)",
   borderRadius: 10,
+};
+
+const ownerLinkStyle: React.CSSProperties = {
+  display: "block",
+  padding: "10px 12px",
+  borderRadius: 8,
+  background: "rgba(255,255,255,0.03)",
+  border: "1px solid rgba(255,255,255,0.08)",
+  color: "#C6A15B",
+  fontSize: 12.5,
+  wordBreak: "break-all",
 };

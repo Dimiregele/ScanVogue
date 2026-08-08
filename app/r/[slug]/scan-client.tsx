@@ -320,7 +320,7 @@ export default function ScanClient({ restaurant, scanId }: { restaurant: Restaur
                   Cineva din echipă te va contacta dacă ai lăsat datele tale de contact.
                 </p>
                 <div className="onyx-fade-3">
-                  
+                  <a
                     href={restaurant.googleReviewUrl}
                     className="onyx-link"
                     style={{ display: "inline-flex", alignItems: "center", gap: 6, border: "1px solid rgba(255,255,255,0.12)", color: "#C9C2B4", borderRadius: 14, padding: "12px 22px", fontSize: 13.5, textDecoration: "none" }}
