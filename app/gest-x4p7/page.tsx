@@ -3,6 +3,8 @@ import { getServerClient } from "@/lib/supabase-server";
 import { signOutOwner } from "./actions";
 import ComplaintStatusButton from "./complaint-status-button";
 import GoogleUrlSetting from "./google-url-setting";
+import ScanAnalytics from "./scan-analytics";
+import ExportComplaintsButton from "./export-complaints-button";
 
 export const dynamic = "force-dynamic";
 
@@ -41,7 +43,7 @@ export default async function OwnerPanel() {
     );
   }
 
-  const [{ count: totalScans }, { count: positiveScans }, { count: negativeScans }, { count: newComplaints }, { data: complaints }] =
+  const [{ count: totalScans }, { count: positiveScans }, { count: negativeScans }, { count: newComplaints }, { data: complaints }, { data: scans }] =
     await Promise.all([
       supabase.from("scans").select("*", { count: "exact", head: true }).eq("restaurant_id", restaurant.id),
       supabase.from("scans").select("*", { count: "exact", head: true }).eq("restaurant_id", restaurant.id).eq("choice", "positive"),
@@ -53,7 +55,34 @@ export default async function OwnerPanel() {
         .eq("restaurant_id", restaurant.id)
         .order("created_at", { ascending: false })
         .limit(50),
+      supabase
+        .from("scans")
+        .select("created_at, choice")
+        .eq("restaurant_id", restaurant.id)
+        .order("created_at", { ascending: true })
+        .limit(5000),
     ]);
+
+  // Rata de satisfactie ignora scanarile abandonate (fara alegere facuta),
+  // ca sa nu dilueze artificial procentul cu oameni care n-au raspuns nimic.
+  const decided = (positiveScans ?? 0) + (negativeScans ?? 0);
+  const satisfactionRate = decided > 0 ? Math.round(((positiveScans ?? 0) / decided) * 100) : null;
+
+  const resolvedComplaints = (complaints ?? []).filter((c) => c.status === "resolved").length;
+
+  // Trend saptamanal -- ultimele 7 zile vs cele 7 dinainte, calculat din
+  // scanarile deja aduse mai sus, fara alt query.
+  const scansList = scans ?? [];
+  const now = Date.now();
+  const day = 24 * 60 * 60 * 1000;
+  const last7 = scansList.filter((s) => now - new Date(s.created_at).getTime() < 7 * day).length;
+  const prev7 = scansList.filter((s) => {
+    const age = now - new Date(s.created_at).getTime();
+    return age >= 7 * day && age < 14 * day;
+  }).length;
+  let trend: { pct: number; up: boolean } | null = null;
+  if (prev7 > 0) trend = { pct: Math.round(Math.abs(((last7 - prev7) / prev7) * 100)), up: last7 >= prev7 };
+  else if (last7 > 0) trend = { pct: 100, up: true };
 
   return (
     <div style={pageStyle}>
@@ -66,12 +95,33 @@ export default async function OwnerPanel() {
         </form>
       </div>
 
+      {satisfactionRate !== null && (
+        <section style={{ ...cardStyle, marginBottom: 24, display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 12 }}>
+          <div>
+            <div style={{ color: "#9C9382", fontSize: 12.5, marginBottom: 4 }}>Rată satisfacție</div>
+            <div style={{ color: "#C6A15B", fontSize: 32, fontWeight: 600 }}>{satisfactionRate}%</div>
+          </div>
+          {trend && (
+            <div style={{ textAlign: "right" }}>
+              <div style={{ color: trend.up ? "#8FD3A0" : "#E0A88C", fontSize: 14, fontWeight: 600 }}>
+                {trend.up ? "↑" : "↓"} {trend.pct}%
+              </div>
+              <div style={{ color: "#6B6558", fontSize: 11.5 }}>scanări față de săptămâna trecută</div>
+            </div>
+          )}
+        </section>
+      )}
+
       <section style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))", gap: 12, marginBottom: 24 }}>
         <StatCard label="Scanări totale" value={totalScans ?? 0} />
-        <StatCard label="Experiențe pozitive" value={positiveScans ?? 0} />
+        <StatCard label="Recenzii Google direcționate" value={positiveScans ?? 0} />
         <StatCard label="Experiențe negative" value={negativeScans ?? 0} />
         <StatCard label="Reclamații necitite" value={newComplaints ?? 0} accent />
       </section>
+
+      <ScanAnalytics scans={scans ?? []} />
+
+      <div style={{ height: 24 }} />
 
       <section style={{ ...cardStyle, marginBottom: 24 }}>
         <h2 style={sectionTitleStyle}>Setări</h2>
@@ -84,7 +134,15 @@ export default async function OwnerPanel() {
       </section>
 
       <section style={cardStyle}>
-        <h2 style={sectionTitleStyle}>Reclamații ({complaints?.length ?? 0})</h2>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", flexWrap: "wrap", gap: 8, marginBottom: 16 }}>
+          <h2 style={{ ...sectionTitleStyle, marginBottom: 0 }}>
+            Reclamații ({complaints?.length ?? 0})
+            {complaints && complaints.length > 0 && (
+              <span style={{ color: "#9C9382", fontSize: 12.5, fontWeight: 400 }}> · {resolvedComplaints} rezolvate</span>
+            )}
+          </h2>
+          <ExportComplaintsButton complaints={complaints ?? []} restaurantSlug={restaurant.slug} />
+        </div>
         {!complaints || complaints.length === 0 ? (
           <p style={{ color: "#9C9382", fontSize: 14 }}>Nicio reclamație încă — semn bun.</p>
         ) : (
