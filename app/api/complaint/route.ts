@@ -34,12 +34,6 @@ export async function POST(req: Request) {
     }
 
     try {
-      const keyPreview = process.env.RESEND_API_KEY
-        ? `${process.env.RESEND_API_KEY.slice(0, 6)}...${process.env.RESEND_API_KEY.slice(-4)} (lungime: ${process.env.RESEND_API_KEY.length})`
-        : "LIPSA / undefined";
-      console.log("DIAGNOSTIC - RESEND_API_KEY vazut de functie:", keyPreview);
-
-      console.log("Incerc sa trimit email catre:", restaurant.alert_email);
       const { data: emailData, error: emailError } = await resend.emails.send({
         from: process.env.RESEND_FROM_EMAIL || "feedback@resend.dev",
         to: restaurant.alert_email,
