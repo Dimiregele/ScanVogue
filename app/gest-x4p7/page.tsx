@@ -75,6 +75,11 @@ export default async function OwnerPanel() {
 
   const resolvedComplaints = (complaints ?? []).filter((c) => c.status === "resolved").length;
 
+  // Reclamatiile rezolvate nu mai apar in lista vizibila -- raman doar in
+  // statistici (resolvedComplaints, deja calculat mai sus din lista completa)
+  // si in exportul CSV, care primeste tot `complaints`, neatins de filtrul asta.
+  const visibleComplaints = (complaints ?? []).filter((c) => c.status !== "resolved");
+
   // Trend saptamanal -- ultimele 7 zile vs cele 7 dinainte, calculat din
   // scanarile deja aduse mai sus, fara alt query.
   const scansList = scans ?? [];
@@ -170,18 +175,20 @@ export default async function OwnerPanel() {
         <section className="admin-fade-5 admin-card" style={cardStyle}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", flexWrap: "wrap", gap: 8, marginBottom: 16 }}>
             <h2 style={{ ...adminSectionTitleStyle, marginBottom: 0 }}>
-              Reclamații ({complaints?.length ?? 0})
-              {complaints && complaints.length > 0 && (
-                <span style={{ color: ADMIN_COLORS.textMuted, fontSize: 12.5, fontWeight: 400, fontFamily: "'Inter', sans-serif" }}> · {resolvedComplaints} rezolvate</span>
+              Reclamații ({visibleComplaints.length})
+              {resolvedComplaints > 0 && (
+                <span style={{ color: ADMIN_COLORS.textMuted, fontSize: 12.5, fontWeight: 400, fontFamily: "'Inter', sans-serif" }}> · {resolvedComplaints} rezolvate, ascunse din listă</span>
               )}
             </h2>
             <ExportComplaintsButton complaints={complaints ?? []} restaurantSlug={restaurant.slug} />
           </div>
-          {!complaints || complaints.length === 0 ? (
-            <p style={{ color: ADMIN_COLORS.textMuted, fontSize: 14 }}>Nicio reclamație încă — semn bun.</p>
+          {visibleComplaints.length === 0 ? (
+            <p style={{ color: ADMIN_COLORS.textMuted, fontSize: 14 }}>
+              {resolvedComplaints > 0 ? "Toate reclamațiile sunt rezolvate — bravo." : "Nicio reclamație încă — semn bun."}
+            </p>
           ) : (
             <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-              {complaints.map((c) => (
+              {visibleComplaints.map((c) => (
                 <div key={c.id} className="admin-row" style={complaintRowStyle}>
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 10 }}>
                     <p style={{ color: ADMIN_COLORS.textPrimary, fontSize: 14, lineHeight: 1.5, margin: 0, flex: 1 }}>{c.message}</p>
