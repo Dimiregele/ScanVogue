@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Plăcuțe Recenzii — recenziile proaste nu mai ajung pe Google</title>
+<meta name="description" content="O plăcuță cu cod QR care separă clienții mulțumiți de cei nemulțumiți, înainte să scrie ceva public. 200 lei/lună, include 3 plăcuțe.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0B0A08;
+    --bg-radial: #18140F;
+    --card: rgba(22,19,15,0.78);
+    --card-border: rgba(198,161,91,0.16);
+    --gold: #C6A15B;
+    --gold-light: #E8D2A0;
+    --gold-deep: #8A6B38;
+    --text-primary: #F5F0E6;
+    --text-muted: #9C9382;
+    --text-faint: #6B6558;
+    --emerald: #8FD3A0;
+    --terracotta: #E0A88C;
+    --sapphire: #7FA0C4;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: radial-gradient(ellipse at 50% 0%, var(--bg-radial) 0%, var(--bg) 60%);
+    color: var(--text-primary);
+    font-family: 'Inter', system-ui, sans-serif;
+    line-height: 1.5;
+    overflow-x: hidden;
+    min-height: 100vh;
+  }
+
+  .wordmark { font-family: 'Cormorant Garamond', serif; letter-spacing: 0.02em; }
+
+  /* ---------- particule ambientale ---------- */
+  .embers { position: fixed; inset: 0; overflow: hidden; pointer-events: none; z-index: 0; }
+  .ember { position: absolute; border-radius: 50%; filter: blur(28px); }
+  .ember-1 { top: -10%; left: -8%; width: 340px; height: 340px; background: radial-gradient(circle, rgba(198,161,91,0.14) 0%, transparent 70%); animation: float1 12s ease-in-out infinite; }
+  .ember-2 { top: 30%; right: -12%; width: 380px; height: 380px; background: radial-gradient(circle, rgba(150,100,50,0.12) 0%, transparent 70%); animation: float2 14s ease-in-out infinite; }
+  .ember-3 { bottom: -10%; left: 20%; width: 300px; height: 300px; background: radial-gradient(circle, rgba(143,211,160,0.05) 0%, transparent 70%); animation: float3 16s ease-in-out infinite; }
+  @keyframes float1 { 0%,100% { transform: translate(0,0) scale(1); } 50% { transform: translate(30px,-40px) scale(1.08); } }
+  @keyframes float2 { 0%,100% { transform: translate(0,0) scale(1); } 50% { transform: translate(-35px,30px) scale(1.05); } }
+  @keyframes float3 { 0%,100% { transform: translate(0,0) scale(1); opacity: 0.5; } 50% { transform: translate(20px,20px) scale(1.15); opacity: 0.8; } }
+
+  section, header, footer { position: relative; z-index: 1; }
+
+  /* ---------- header ---------- */
+  header {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 24px clamp(20px, 6vw, 64px);
+    max-width: 1180px; margin: 0 auto;
+  }
+  .logo { font-size: 19px; font-weight: 600; color: var(--text-primary); }
+  .logo span { color: var(--gold); }
+  .nav-cta {
+    padding: 9px 18px; border-radius: 999px; border: 1px solid rgba(198,161,91,0.35);
+    color: var(--gold-light); font-size: 13px; text-decoration: none;
+    transition: all 0.25s ease;
+  }
+  .nav-cta:hover { background: rgba(198,161,91,0.08); border-color: var(--gold); }
+
+  /* ---------- hero ---------- */
+  .hero {
+    max-width: 1180px; margin: 0 auto;
+    padding: clamp(40px,8vw,90px) clamp(20px,6vw,64px) clamp(60px,10vw,110px);
+    display: grid; grid-template-columns: 1.15fr 0.85fr; gap: 56px; align-items: center;
+  }
+  @media (max-width: 860px) { .hero { grid-template-columns: 1fr; text-align: center; } }
+
+  .eyebrow {
+    display: inline-block; font-size: 12px; letter-spacing: 0.14em; text-transform: uppercase;
+    color: var(--text-faint); border: 1px solid rgba(255,255,255,0.1); padding: 6px 14px;
+    border-radius: 999px; margin-bottom: 22px;
+  }
+
+  h1 {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(34px, 5vw, 54px);
+    font-weight: 600;
+    line-height: 1.12;
+    letter-spacing: 0.005em;
+    margin-bottom: 20px;
+  }
+  h1 .shimmer {
+    background: linear-gradient(90deg, var(--gold) 0%, var(--gold-light) 25%, var(--gold) 50%, var(--gold-deep) 75%, var(--gold) 100%);
+    background-size: 200% auto;
+    -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+    animation: shimmer 4s linear infinite;
+  }
+  @keyframes shimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
+
+  .hero p.lead { color: var(--text-muted); font-size: 17px; max-width: 480px; margin-bottom: 32px; }
+  @media (max-width: 860px) { .hero p.lead { margin-left: auto; margin-right: auto; } }
+
+  .cta-row { display: flex; gap: 14px; flex-wrap: wrap; }
+  @media (max-width: 860px) { .cta-row { justify-content: center; } }
+
+  .btn-primary {
+    padding: 14px 26px; border-radius: 12px; border: none;
+    background: linear-gradient(135deg, var(--gold-light), var(--gold) 60%, var(--gold-deep));
+    color: #100F0D; font-weight: 600; font-size: 14.5px; text-decoration: none;
+    display: inline-block; transition: transform 0.2s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.25s ease;
+  }
+  .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 12px 30px -8px rgba(198,161,91,0.5); }
+
+  .btn-ghost {
+    padding: 14px 26px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.14);
+    color: var(--text-primary); font-size: 14.5px; text-decoration: none; display: inline-block;
+    transition: all 0.25s ease;
+  }
+  .btn-ghost:hover { border-color: rgba(198,161,91,0.5); background: rgba(198,161,91,0.05); }
+
+  /* ---------- placheta hero ---------- */
+  .plaque-wrap { display: flex; justify-content: center; }
+  .plaque {
+    width: 260px; aspect-ratio: 3/4; border-radius: 22px;
+    background: linear-gradient(155deg, #2a2116, #17130d 55%, #0d0b08);
+    border: 1px solid rgba(198,161,91,0.3);
+    box-shadow: 0 40px 80px -20px rgba(0,0,0,0.7), inset 0 1px 0 rgba(255,255,255,0.04);
+    padding: 26px; display: flex; flex-direction: column; align-items: center; justify-content: space-between;
+    position: relative; animation: floatPlaque 6s ease-in-out infinite;
+  }
+  @keyframes floatPlaque { 0%,100% { transform: translateY(0) rotate(-1.2deg); } 50% { transform: translateY(-10px) rotate(1.2deg); } }
+  .plaque::before {
+    content: ''; position: absolute; inset: -1px; border-radius: 22px; padding: 1px;
+    background: linear-gradient(155deg, rgba(232,210,160,0.5), transparent 40%, rgba(198,161,91,0.25));
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor; mask-composite: exclude; pointer-events: none;
+  }
+  .plaque-title { font-family: 'Cormorant Garamond', serif; font-size: 15px; letter-spacing: 0.08em; color: var(--gold-light); text-align: center; }
+  .qr-mock {
+    width: 130px; height: 130px; border-radius: 10px; background: #F5F0E6; padding: 10px;
+    display: grid; grid-template-columns: repeat(7, 1fr); grid-template-rows: repeat(7, 1fr); gap: 3px;
+  }
+  .qr-mock div { background: #100F0D; border-radius: 1px; }
+  .plaque-sub { font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--text-faint); text-align: center; }
+
+  /* ---------- sectiuni generale ---------- */
+  .section { max-width: 1180px; margin: 0 auto; padding: 70px clamp(20px,6vw,64px); }
+  .section-head { text-align: center; max-width: 640px; margin: 0 auto 48px; }
+  .section-eyebrow { font-size: 12px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--gold); margin-bottom: 10px; }
+  h2 { font-family: 'Cormorant Garamond', serif; font-size: clamp(26px,3.6vw,36px); font-weight: 600; margin-bottom: 12px; }
+  .section-head p { color: var(--text-muted); font-size: 15.5px; }
+
+  .fade-up { opacity: 0; transform: translateY(24px); transition: opacity 0.7s cubic-bezier(0.16,1,0.3,1), transform 0.7s cubic-bezier(0.16,1,0.3,1); }
+  .fade-up.visible { opacity: 1; transform: translateY(0); }
+
+  /* ---------- problema ---------- */
+  .problem-statement {
+    text-align: center; max-width: 720px; margin: 0 auto; padding: 60px clamp(20px,6vw,64px);
+  }
+  .problem-statement p {
+    font-family: 'Cormorant Garamond', serif; font-size: clamp(22px, 3vw, 30px); font-weight: 500;
+    color: var(--text-primary); line-height: 1.4;
+  }
+  .problem-statement .highlight { color: var(--terracotta); }
+
+  /* ---------- how it works ---------- */
+  .steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
+  @media (max-width: 780px) { .steps { grid-template-columns: 1fr; } }
+  .step-card {
+    background: var(--card); border: 1px solid var(--card-border); border-radius: 18px; padding: 28px 24px;
+    transition: transform 0.25s cubic-bezier(0.16,1,0.3,1), border-color 0.3s ease;
+  }
+  .step-card:hover { transform: translateY(-4px); border-color: rgba(198,161,91,0.4); }
+  .step-num {
+    width: 34px; height: 34px; border-radius: 10px; display: flex; align-items: center; justify-content: center;
+    background: rgba(198,161,91,0.1); color: var(--gold); font-weight: 600; font-size: 14px; margin-bottom: 16px;
+  }
+  .step-card h3 { font-size: 15.5px; font-weight: 600; margin-bottom: 8px; color: var(--text-primary); }
+  .step-card p { color: var(--text-muted); font-size: 13.5px; line-height: 1.6; }
+
+  /* ---------- demo interactiv ---------- */
+  .demo-section { display: grid; grid-template-columns: 1fr 1fr; gap: 56px; align-items: center; }
+  @media (max-width: 860px) { .demo-section { grid-template-columns: 1fr; } }
+  .demo-copy h2 { text-align: left; }
+  .demo-copy p.lead { color: var(--text-muted); font-size: 15.5px; margin-bottom: 20px; max-width: 420px; }
+  .demo-copy ul { list-style: none; display: flex; flex-direction: column; gap: 12px; }
+  .demo-copy li { color: var(--text-muted); font-size: 14px; display: flex; gap: 10px; align-items: flex-start; }
+  .demo-copy li::before { content: '✓'; color: var(--emerald); font-weight: 700; flex-shrink: 0; }
+
+  .phone {
+    width: 280px; margin: 0 auto; border-radius: 32px; border: 8px solid #1a1712;
+    background: var(--bg); box-shadow: 0 40px 90px -20px rgba(0,0,0,0.7);
+    overflow: hidden; position: relative;
+  }
+  .phone-screen { min-height: 420px; padding: 30px 22px; display: flex; flex-direction: column; justify-content: center; position: relative; }
+  .phone-view { display: none; }
+  .phone-view.active { display: block; animation: fadeIn 0.4s ease; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+  .demo-title { font-family: 'Cormorant Garamond', serif; font-size: 18px; text-align: center; margin-bottom: 6px; }
+  .demo-q { text-align: center; color: var(--text-primary); font-size: 14.5px; margin-bottom: 22px; }
+  .demo-btn {
+    width: 100%; padding: 13px; border-radius: 12px; border: none; font-size: 13.5px; font-weight: 600;
+    cursor: pointer; margin-bottom: 10px; transition: transform 0.18s ease;
+  }
+  .demo-btn:active { transform: scale(0.97); }
+  .demo-btn.positive { background: linear-gradient(135deg, var(--gold-light), var(--gold)); color: #100F0D; }
+  .demo-btn.negative { background: transparent; border: 1px solid rgba(255,255,255,0.12); color: #C9C2B4; }
+  .demo-textarea {
+    width: 100%; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1); border-radius: 10px;
+    padding: 12px; color: var(--text-primary); font-size: 13px; font-family: inherit; resize: none; margin-bottom: 12px;
+  }
+  .demo-result { text-align: center; }
+  .demo-result .icon { font-size: 34px; margin-bottom: 10px; }
+  .demo-result p { color: var(--text-muted); font-size: 13px; margin-bottom: 16px; }
+  .demo-reset { color: var(--text-faint); font-size: 12px; text-decoration: underline; cursor: pointer; text-align: center; display: block; margin-top: 10px; }
+
+  /* ---------- dashboard highlights ---------- */
+  .feature-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 18px; }
+  .feature-card {
+    background: var(--card); border: 1px solid var(--card-border); border-radius: 16px; padding: 22px;
+    border-left: 2px solid var(--gold); transition: transform 0.25s ease, border-color 0.3s ease;
+  }
+  .feature-card:hover { transform: translateY(-3px); border-color: rgba(198,161,91,0.4); }
+  .feature-card .stat { font-family: 'Cormorant Garamond', serif; font-size: 26px; color: var(--gold); margin-bottom: 6px; }
+  .feature-card h3 { font-size: 14px; font-weight: 600; margin-bottom: 6px; }
+  .feature-card p { color: var(--text-muted); font-size: 13px; line-height: 1.5; }
+
+  /* ---------- pricing ---------- */
+  .price-card {
+    max-width: 420px; margin: 0 auto; text-align: center;
+    background: var(--card); border: 1px solid rgba(198,161,91,0.3); border-radius: 22px; padding: 44px 32px;
+    position: relative; overflow: hidden;
+  }
+  .price-card::before {
+    content: ''; position: absolute; inset: 0; background: radial-gradient(circle at 50% 0%, rgba(198,161,91,0.1), transparent 60%);
+    pointer-events: none;
+  }
+  .price-value { font-family: 'Cormorant Garamond', serif; font-size: 52px; font-weight: 700; color: var(--gold); position: relative; }
+  .price-value span { font-size: 16px; color: var(--text-muted); font-family: 'Inter', sans-serif; font-weight: 400; }
+  .price-card .includes { color: var(--text-muted); font-size: 14px; margin: 14px 0 26px; position: relative; }
+  .price-list { list-style: none; text-align: left; display: flex; flex-direction: column; gap: 10px; margin-bottom: 28px; position: relative; }
+  .price-list li { color: var(--text-primary); font-size: 13.5px; display: flex; gap: 10px; align-items: flex-start; }
+  .price-list li::before { content: '✓'; color: var(--emerald); font-weight: 700; flex-shrink: 0; }
+  .price-note { color: var(--text-faint); font-size: 12px; position: relative; }
+
+  /* ---------- cta final ---------- */
+  .final-cta { text-align: center; padding-bottom: 100px; }
+  .final-cta h2 { max-width: 500px; margin: 0 auto 14px; }
+  .final-cta p { color: var(--text-muted); font-size: 15px; margin-bottom: 30px; }
+
+  footer {
+    max-width: 1180px; margin: 0 auto; padding: 30px clamp(20px,6vw,64px);
+    display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;
+    border-top: 1px solid rgba(255,255,255,0.06); color: var(--text-faint); font-size: 12.5px;
+  }
+  footer a { color: var(--text-faint); }
+
+  @media (prefers-reduced-motion: reduce) {
+    * { animation: none !important; transition: none !important; }
+  }
+</style>
+</head>
+<body>
+
+<div class="embers">
+  <div class="ember ember-1"></div>
+  <div class="ember ember-2"></div>
+  <div class="ember ember-3"></div>
+</div>
+
+<header>
+  <div class="logo wordmark">Plăcuțe <span>Recenzii</span></div>
+  <a class="nav-cta" href="#contact">Cere ofertă</a>
+</header>
+
+<section class="hero">
+  <div>
+    <span class="eyebrow">Pentru restaurante &amp; complexuri HoReCa</span>
+    <h1>Recenzia proastă nu mai ajunge <span class="shimmer">niciodată pe Google.</span></h1>
+    <p class="lead">O plăcuță elegantă, un cod QR, și un sistem simplu care separă clienții mulțumiți de cei nemulțumiți — înainte să scrie ceva public.</p>
+    <div class="cta-row">
+      <a class="btn-primary" href="#demo">Vezi cum funcționează</a>
+      <a class="btn-ghost" href="#contact">Cere ofertă</a>
+    </div>
+  </div>
+  <div class="plaque-wrap">
+    <div class="plaque">
+      <div class="plaque-title">CUM A FOST<br>EXPERIENȚA TA?</div>
+      <div class="qr-mock" id="qrMock"></div>
+      <div class="plaque-sub">Scanează pentru feedback</div>
+    </div>
+  </div>
+</section>
+
+<div class="problem-statement fade-up">
+  <p>O singură recenzie de <span class="highlight">1 stea</span>, vizibilă public pe Google, poate cântări în decizia a zeci de clienți care nici n-au pus vreodată piciorul la tine.</p>
+</div>
+
+<section class="section" id="how">
+  <div class="section-head fade-up">
+    <div class="section-eyebrow">Cum funcționează</div>
+    <h2>Trei pași, cât timp clientul așteaptă nota de plată</h2>
+    <p>Fără aplicație de instalat, fără cont de creat. Doar un scan.</p>
+  </div>
+  <div class="steps">
+    <div class="step-card fade-up">
+      <div class="step-num">1</div>
+      <h3>Clientul scanează</h3>
+      <p>Codul QR e pe masă, pe notă, sau la ieșire — oriunde alegi tu să pui plăcuța.</p>
+    </div>
+    <div class="step-card fade-up">
+      <div class="step-num">2</div>
+      <h3>Alege în două secunde</h3>
+      <p>O singură întrebare: experiență plăcută, sau ceva n-a fost pe plac.</p>
+    </div>
+    <div class="step-card fade-up">
+      <div class="step-num">3</div>
+      <h3>Se separă automat</h3>
+      <p>Pozitiv → direct spre Google Reviews. Negativ → ajunge privat la tine, cu toate detaliile.</p>
+    </div>
+  </div>
+</section>
+
+<section class="section demo-section" id="demo">
+  <div class="demo-copy">
+    <div class="section-eyebrow fade-up">Încearcă chiar tu</div>
+    <h2 class="fade-up">Exact ce vede clientul tău</h2>
+    <p class="lead fade-up">Apasă unul din butoane, ca și cum ai fi la o masă chiar acum.</p>
+    <ul class="fade-up">
+      <li>Fără parolă, fără aplicație — funcționează din orice browser de telefon</li>
+      <li>Recenzia negativă rămâne privată, nu devine niciodată publică</li>
+      <li>Linkul de Google rămâne vizibil oricând, inclusiv după o reclamație</li>
+    </ul>
+  </div>
+  <div class="fade-up">
+    <div class="phone">
+      <div class="phone-screen">
+        <div class="phone-view active" id="view-initial">
+          <div class="demo-title">Complex Herăstrău</div>
+          <p class="demo-q">Cum a fost experiența ta astăzi?</p>
+          <button class="demo-btn positive" onclick="showView('positive')">★ Am avut o experiență plăcută</button>
+          <button class="demo-btn negative" onclick="showView('negative-form')">Ceva nu a fost pe placul meu</button>
+        </div>
+
+        <div class="phone-view" id="view-positive">
+          <div class="demo-result">
+            <div class="icon">⭐</div>
+            <p>Te-ar duce acum spre Google Reviews, ca să lași o recenzie publică.</p>
+            <span class="demo-reset" onclick="showView('initial')">← Încearcă din nou</span>
+          </div>
+        </div>
+
+        <div class="phone-view" id="view-negative-form">
+          <div class="demo-title" style="margin-bottom: 4px;">Ne pare rău să auzim asta</div>
+          <p class="demo-q" style="font-size: 12.5px; color: var(--text-muted);">Spune-ne ce nu a fost în regulă</p>
+          <textarea class="demo-textarea" rows="3" placeholder="Ce nu a fost pe placul tău?"></textarea>
+          <button class="demo-btn positive" onclick="showView('negative-thanks')">Trimite</button>
+        </div>
+
+        <div class="phone-view" id="view-negative-thanks">
+          <div class="demo-result">
+            <div class="icon">✓</div>
+            <p>Mulțumim — mesajul ajunge direct și privat la restaurant, nu devine public.</p>
+            <span class="demo-reset" onclick="showView('initial')">← Încearcă din nou</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="dashboard">
+  <div class="section-head fade-up">
+    <div class="section-eyebrow">Panoul tău</div>
+    <h2>Vezi exact ce se întâmplă, în timp real</h2>
+    <p>Fiecare restaurant primește propriul panou — fără parolă, doar codul primit pe email.</p>
+  </div>
+  <div class="feature-grid">
+    <div class="feature-card fade-up">
+      <div class="stat">68%</div>
+      <h3>Rată de satisfacție</h3>
+      <p>Calculată automat din scanări, actualizată la fiecare vizită în panou.</p>
+    </div>
+    <div class="feature-card fade-up">
+      <div class="stat">20–21h</div>
+      <h3>Ore de vârf</h3>
+      <p>Vezi exact când ai cel mai mult trafic — pe oră, zi, săptămână, lună sau an.</p>
+    </div>
+    <div class="feature-card fade-up">
+      <div class="stat">Inbox</div>
+      <h3>Reclamații private</h3>
+      <p>Toate mesajele nemulțumiților, cu status și contact, exportabile în CSV.</p>
+    </div>
+    <div class="feature-card fade-up">
+      <div class="stat">1 click</div>
+      <h3>Setări simple</h3>
+      <p>Schimbi linkul de Google Reviews chiar tu, oricând, fără să ne scrii.</p>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="pricing">
+  <div class="section-head fade-up">
+    <div class="section-eyebrow">Preț</div>
+    <h2>Simplu, fără costuri ascunse</h2>
+  </div>
+  <div class="price-card fade-up">
+    <div class="price-value">200 <span>lei / lună</span></div>
+    <p class="includes">Include 3 plăcuțe cu cod QR</p>
+    <ul class="price-list">
+      <li>Panou complet cu statistici și grafice</li>
+      <li>Inbox privat de reclamații, nelimitat</li>
+      <li>Link Google Reviews editabil oricând</li>
+      <li>Plăcuțe suplimentare — 49 lei / bucată</li>
+    </ul>
+    <p class="price-note">Fără angajament pe termen lung.</p>
+  </div>
+</section>
+
+<section class="section final-cta" id="contact">
+  <h2 class="fade-up">Hai să punem prima plăcuță la tine.</h2>
+  <p class="fade-up">Răspundem în aceeași zi. Fără obligații, fără presiune.</p>
+  <a class="btn-primary fade-up" href="mailto:dimianic123@gmail.com?subject=Vreau%20plăcuțe%20recenzii">Scrie-ne</a>
+</section>
+
+<footer>
+  <div class="wordmark">Plăcuțe Recenzii</div>
+  <div>© 2026 · <a href="mailto:dimianic123@gmail.com">dimianic123@gmail.com</a></div>
+</footer>
+
+<script>
+  // Demo interactiv -- comuta intre "ecranele" telefonului mock
+  function showView(name) {
+    document.querySelectorAll('.phone-view').forEach(function (el) { el.classList.remove('active'); });
+    document.getElementById('view-' + name).classList.add('active');
+  }
+
+  // Genereaza un model vizual de tip QR (decorativ, nu scanabil real)
+  (function generateQrMock() {
+    const grid = document.getElementById('qrMock');
+    for (let i = 0; i < 49; i++) {
+      const cell = document.createElement('div');
+      // model pseudo-aleator dar stabil, cu colturile mereu pline (ca un QR real)
+      const row = Math.floor(i / 7), col = i % 7;
+      const isCorner = (row < 2 && col < 2) || (row < 2 && col > 4) || (row > 4 && col < 2);
+      cell.style.opacity = isCorner || Math.random() > 0.42 ? '1' : '0';
+      grid.appendChild(cell);
+    }
+  })();
+
+  // Reveal la scroll
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach((entry) => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('visible');
+        observer.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.15 });
+
+  document.querySelectorAll('.fade-up').forEach((el) => observer.observe(el));
+</script>
+
+</body>
+</html>
