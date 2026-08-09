@@ -3,8 +3,16 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Plăcuțe Recenzii — recenziile proaste nu mai ajung pe Google</title>
-<meta name="description" content="O plăcuță cu cod QR care separă clienții mulțumiți de cei nemulțumiți, înainte să scrie ceva public. 200 lei/lună, include 3 plăcuțe.">
+<title>Plăcuțe Recenzii — feedback privat, mai multe recenzii bune pe Google</title>
+<meta name="description" content="Filtrează inteligent feedbackul negativ și rezolvă problemele în privat. Plăcuța QR care îți crește numărul de recenzii bune pe Google.">
+
+<meta property="og:title" content="Plăcuțe Recenzii — feedback privat, mai multe recenzii bune pe Google">
+<meta property="og:description" content="Un cod QR simplu care separă clienții mulțumiți de cei nemulțumiți — înainte să scrie ceva public.">
+<meta property="og:image" content="https://i.postimg.cc/wjx5rCz1/Chat-GPT-Image-Aug-9-2026-02-09-37-PM.png">
+<meta property="og:type" content="website">
+<meta property="og:locale" content="ro_RO">
+<link rel="icon" href="https://i.postimg.cc/wjx5rCz1/Chat-GPT-Image-Aug-9-2026-02-09-37-PM.png">
+
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
@@ -25,9 +33,7 @@
   }
 
   * { box-sizing: border-box; margin: 0; padding: 0; }
-
   html { scroll-behavior: smooth; }
-
   body {
     background: radial-gradient(ellipse at 50% 0%, var(--bg-radial) 0%, var(--bg) 60%);
     color: var(--text-primary);
@@ -37,61 +43,50 @@
     min-height: 100vh;
   }
 
-  .wordmark { font-family: 'Cormorant Garamond', serif; letter-spacing: 0.02em; }
+  /* ---------- bara de progres la scroll ---------- */
+  #scrollProgress {
+    position: fixed; top: 0; left: 0; height: 2px; width: 0%;
+    background: linear-gradient(90deg, var(--gold-deep), var(--gold), var(--gold-light));
+    z-index: 100; transition: width 0.1s linear;
+    box-shadow: 0 0 8px rgba(198,161,91,0.6);
+  }
 
-  /* ---------- particule ambientale ---------- */
+  .reveal { opacity: 0; transform: translateY(30px); transition: opacity 0.8s cubic-bezier(0.16,1,0.3,1), transform 0.8s cubic-bezier(0.16,1,0.3,1); }
+  .reveal.active { opacity: 1; transform: translateY(0); }
+
+  /* ---------- animatie text pe cuvinte (h2) ---------- */
+  .word-split span { display: inline-block; opacity: 0; transform: translateY(22px); filter: blur(5px); transition: opacity 0.6s cubic-bezier(0.16,1,0.3,1), transform 0.6s cubic-bezier(0.16,1,0.3,1), filter 0.6s ease; }
+  .word-split.in-view span { opacity: 1; transform: translateY(0); filter: blur(0); }
+
+  .hero-title-reveal { opacity: 0; filter: blur(8px); transform: translateY(16px); animation: heroReveal 1s cubic-bezier(0.16,1,0.3,1) 0.15s forwards; }
+  @keyframes heroReveal { to { opacity: 1; filter: blur(0); transform: translateY(0); } }
+
   .embers { position: fixed; inset: 0; overflow: hidden; pointer-events: none; z-index: 0; }
-  .ember { position: absolute; border-radius: 50%; filter: blur(28px); }
-  .ember-1 { top: -10%; left: -8%; width: 340px; height: 340px; background: radial-gradient(circle, rgba(198,161,91,0.14) 0%, transparent 70%); animation: float1 12s ease-in-out infinite; }
-  .ember-2 { top: 30%; right: -12%; width: 380px; height: 380px; background: radial-gradient(circle, rgba(150,100,50,0.12) 0%, transparent 70%); animation: float2 14s ease-in-out infinite; }
-  .ember-3 { bottom: -10%; left: 20%; width: 300px; height: 300px; background: radial-gradient(circle, rgba(143,211,160,0.05) 0%, transparent 70%); animation: float3 16s ease-in-out infinite; }
-  @keyframes float1 { 0%,100% { transform: translate(0,0) scale(1); } 50% { transform: translate(30px,-40px) scale(1.08); } }
-  @keyframes float2 { 0%,100% { transform: translate(0,0) scale(1); } 50% { transform: translate(-35px,30px) scale(1.05); } }
-  @keyframes float3 { 0%,100% { transform: translate(0,0) scale(1); opacity: 0.5; } 50% { transform: translate(20px,20px) scale(1.15); opacity: 0.8; } }
+  .ember { position: absolute; border-radius: 50%; filter: blur(32px); }
+  .ember-1 { top: -10%; left: -8%; width: 400px; height: 400px; background: radial-gradient(circle, rgba(198,161,91,0.16) 0%, transparent 70%); animation: float1 14s ease-in-out infinite; }
+  .ember-2 { top: 40%; right: -12%; width: 450px; height: 450px; background: radial-gradient(circle, rgba(150,100,50,0.14) 0%, transparent 70%); animation: float2 18s ease-in-out infinite; }
+  .ember-3 { bottom: -10%; left: 20%; width: 350px; height: 350px; background: radial-gradient(circle, rgba(143,211,160,0.06) 0%, transparent 70%); animation: float3 16s ease-in-out infinite; }
+  @keyframes float1 { 0%,100% { transform: translate(0,0) scale(1); } 50% { transform: translate(40px,-50px) scale(1.1); } }
+  @keyframes float2 { 0%,100% { transform: translate(0,0) scale(1); } 50% { transform: translate(-45px,40px) scale(1.08); } }
+  @keyframes float3 { 0%,100% { transform: translate(0,0) scale(1); opacity: 0.5; } 50% { transform: translate(30px,25px) scale(1.15); opacity: 0.85; } }
 
   section, header, footer { position: relative; z-index: 1; }
 
-  /* ---------- header ---------- */
-  header {
-    display: flex; justify-content: space-between; align-items: center;
-    padding: 24px clamp(20px, 6vw, 64px);
-    max-width: 1180px; margin: 0 auto;
-  }
-  .logo { font-size: 19px; font-weight: 600; color: var(--text-primary); }
-  .logo span { color: var(--gold); }
-  .nav-cta {
-    padding: 9px 18px; border-radius: 999px; border: 1px solid rgba(198,161,91,0.35);
-    color: var(--gold-light); font-size: 13px; text-decoration: none;
-    transition: all 0.25s ease;
-  }
-  .nav-cta:hover { background: rgba(198,161,91,0.08); border-color: var(--gold); }
+  header { display: flex; justify-content: space-between; align-items: center; padding: 24px clamp(20px, 6vw, 64px); max-width: 1180px; margin: 0 auto; }
+  .site-title { font-family: 'Cormorant Garamond', serif; font-size: 22px; font-weight: 600; color: var(--text-primary); letter-spacing: 0.02em; display: flex; align-items: center; gap: 10px; }
+  .site-title img { width: 28px; height: 28px; object-fit: contain; border-radius: 6px; }
+  .nav-cta { padding: 10px 20px; border-radius: 999px; border: 1px solid rgba(198,161,91,0.35); color: var(--gold-light); font-size: 13.5px; text-decoration: none; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+  .nav-cta:hover { background: rgba(198,161,91,0.12); border-color: var(--gold); transform: translateY(-2px); box-shadow: 0 4px 15px rgba(198,161,91,0.2); }
 
-  /* ---------- hero ---------- */
-  .hero {
-    max-width: 1180px; margin: 0 auto;
-    padding: clamp(40px,8vw,90px) clamp(20px,6vw,64px) clamp(60px,10vw,110px);
-    display: grid; grid-template-columns: 1.15fr 0.85fr; gap: 56px; align-items: center;
-  }
+  .hero { max-width: 1180px; margin: 0 auto; padding: clamp(40px,8vw,90px) clamp(20px,6vw,64px) clamp(60px,10vw,110px); display: grid; grid-template-columns: 1.15fr 0.85fr; gap: 56px; align-items: center; }
   @media (max-width: 860px) { .hero { grid-template-columns: 1fr; text-align: center; } }
 
-  .eyebrow {
-    display: inline-block; font-size: 12px; letter-spacing: 0.14em; text-transform: uppercase;
-    color: var(--text-faint); border: 1px solid rgba(255,255,255,0.1); padding: 6px 14px;
-    border-radius: 999px; margin-bottom: 22px;
-  }
+  .eyebrow { display: inline-block; font-size: 12px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--text-faint); border: 1px solid rgba(255,255,255,0.1); padding: 6px 14px; border-radius: 999px; margin-bottom: 22px; background: rgba(255,255,255,0.02); }
 
-  h1 {
-    font-family: 'Cormorant Garamond', serif;
-    font-size: clamp(34px, 5vw, 54px);
-    font-weight: 600;
-    line-height: 1.12;
-    letter-spacing: 0.005em;
-    margin-bottom: 20px;
-  }
+  h1 { font-family: 'Cormorant Garamond', serif; font-size: clamp(34px, 5vw, 54px); font-weight: 600; line-height: 1.12; letter-spacing: 0.005em; margin-bottom: 20px; }
   h1 .shimmer {
     background: linear-gradient(90deg, var(--gold) 0%, var(--gold-light) 25%, var(--gold) 50%, var(--gold-deep) 75%, var(--gold) 100%);
-    background-size: 200% auto;
-    -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+    background-size: 200% auto; -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
     animation: shimmer 4s linear infinite;
   }
   @keyframes shimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
@@ -103,163 +98,206 @@
   @media (max-width: 860px) { .cta-row { justify-content: center; } }
 
   .btn-primary {
-    padding: 14px 26px; border-radius: 12px; border: none;
+    padding: 14px 28px; border-radius: 14px; border: none;
     background: linear-gradient(135deg, var(--gold-light), var(--gold) 60%, var(--gold-deep));
-    color: #100F0D; font-weight: 600; font-size: 14.5px; text-decoration: none;
-    display: inline-block; transition: transform 0.2s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.25s ease;
+    color: #100F0D; font-weight: 600; font-size: 15px; text-decoration: none;
+    display: inline-block; transition: all 0.3s cubic-bezier(0.34,1.56,0.64,1);
+    position: relative; overflow: hidden; cursor: pointer;
   }
-  .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 12px 30px -8px rgba(198,161,91,0.5); }
+  .btn-primary::after {
+    content: ''; position: absolute; inset: 0;
+    background: linear-gradient(105deg, transparent 40%, rgba(255,255,255,0.4) 45%, rgba(255,255,255,0.1) 50%, transparent 55%);
+    background-size: 200% 100%; animation: btnShimmer 3.5s ease-in-out infinite; pointer-events: none;
+  }
+  @keyframes btnShimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+  .btn-primary:hover { transform: translateY(-3px) scale(1.02); box-shadow: 0 15px 35px -8px rgba(198,161,91,0.6); }
 
-  .btn-ghost {
-    padding: 14px 26px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.14);
-    color: var(--text-primary); font-size: 14.5px; text-decoration: none; display: inline-block;
-    transition: all 0.25s ease;
-  }
-  .btn-ghost:hover { border-color: rgba(198,161,91,0.5); background: rgba(198,161,91,0.05); }
+  .btn-ghost { padding: 14px 28px; border-radius: 14px; border: 1px solid rgba(255,255,255,0.18); color: var(--text-primary); font-size: 15px; text-decoration: none; display: inline-block; transition: all 0.3s ease; background: rgba(255,255,255,0.02); cursor: pointer; }
+  .btn-ghost:hover { border-color: rgba(198,161,91,0.6); background: rgba(198,161,91,0.08); transform: translateY(-2px); }
 
-  /* ---------- placheta hero ---------- */
-  .plaque-wrap { display: flex; justify-content: center; }
-  .plaque {
-    width: 260px; aspect-ratio: 3/4; border-radius: 22px;
-    background: linear-gradient(155deg, #2a2116, #17130d 55%, #0d0b08);
-    border: 1px solid rgba(198,161,91,0.3);
-    box-shadow: 0 40px 80px -20px rgba(0,0,0,0.7), inset 0 1px 0 rgba(255,255,255,0.04);
-    padding: 26px; display: flex; flex-direction: column; align-items: center; justify-content: space-between;
-    position: relative; animation: floatPlaque 6s ease-in-out infinite;
+  .plaque-wrap { display: flex; justify-content: center; perspective: 800px; }
+  .plaque-img {
+    width: 280px; height: auto; aspect-ratio: 3/4; object-fit: contain;
+    filter: drop-shadow(0 40px 90px rgba(0,0,0,0.8));
+    animation: floatPlaque 6s ease-in-out infinite;
+    transition: transform 0.15s ease-out;
+    transform-style: preserve-3d;
   }
-  @keyframes floatPlaque { 0%,100% { transform: translateY(0) rotate(-1.2deg); } 50% { transform: translateY(-10px) rotate(1.2deg); } }
-  .plaque::before {
-    content: ''; position: absolute; inset: -1px; border-radius: 22px; padding: 1px;
-    background: linear-gradient(155deg, rgba(232,210,160,0.5), transparent 40%, rgba(198,161,91,0.25));
-    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-    -webkit-mask-composite: xor; mask-composite: exclude; pointer-events: none;
-  }
-  .plaque-title { font-family: 'Cormorant Garamond', serif; font-size: 15px; letter-spacing: 0.08em; color: var(--gold-light); text-align: center; }
-  .qr-mock {
-    width: 130px; height: 130px; border-radius: 10px; background: #F5F0E6; padding: 10px;
-    display: grid; grid-template-columns: repeat(7, 1fr); grid-template-rows: repeat(7, 1fr); gap: 3px;
-  }
-  .qr-mock div { background: #100F0D; border-radius: 1px; }
-  .plaque-sub { font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--text-faint); text-align: center; }
+  @keyframes floatPlaque { 0%,100% { transform: translateY(0) rotate(-1.5deg); } 50% { transform: translateY(-12px) rotate(1.5deg); } }
 
-  /* ---------- sectiuni generale ---------- */
-  .section { max-width: 1180px; margin: 0 auto; padding: 70px clamp(20px,6vw,64px); }
-  .section-head { text-align: center; max-width: 640px; margin: 0 auto 48px; }
-  .section-eyebrow { font-size: 12px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--gold); margin-bottom: 10px; }
-  h2 { font-family: 'Cormorant Garamond', serif; font-size: clamp(26px,3.6vw,36px); font-weight: 600; margin-bottom: 12px; }
-  .section-head p { color: var(--text-muted); font-size: 15.5px; }
+  .section { max-width: 1180px; margin: 0 auto; padding: 80px clamp(20px,6vw,64px); }
+  .section-head { text-align: center; max-width: 680px; margin: 0 auto 56px; }
+  .section-eyebrow { font-size: 12px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--gold); margin-bottom: 12px; }
+  h2 { font-family: 'Cormorant Garamond', serif; font-size: clamp(28px,3.8vw,40px); font-weight: 600; margin-bottom: 14px; line-height: 1.2; }
+  .section-head p { color: var(--text-muted); font-size: 16px; }
 
-  .fade-up { opacity: 0; transform: translateY(24px); transition: opacity 0.7s cubic-bezier(0.16,1,0.3,1), transform 0.7s cubic-bezier(0.16,1,0.3,1); }
-  .fade-up.visible { opacity: 1; transform: translateY(0); }
+  .problem-statement { text-align: center; max-width: 820px; margin: 0 auto; padding: 60px clamp(20px,6vw,64px); }
+  .problem-statement p { font-family: 'Cormorant Garamond', serif; font-size: clamp(23px, 3.2vw, 32px); font-weight: 500; color: var(--text-primary); line-height: 1.45; }
+  .problem-statement .highlight { color: var(--terracotta); border-bottom: 1px dashed rgba(224,168,140,0.4); }
 
-  /* ---------- problema ---------- */
-  .problem-statement {
-    text-align: center; max-width: 720px; margin: 0 auto; padding: 60px clamp(20px,6vw,64px);
-  }
-  .problem-statement p {
-    font-family: 'Cormorant Garamond', serif; font-size: clamp(22px, 3vw, 30px); font-weight: 500;
-    color: var(--text-primary); line-height: 1.4;
-  }
-  .problem-statement .highlight { color: var(--terracotta); }
+  .stats-row { display: flex; justify-content: center; gap: 40px; flex-wrap: wrap; margin-top: 30px; max-width: 900px; margin-left: auto; margin-right: auto; }
+  .stat-item { text-align: center; color: var(--text-primary); background: var(--card); border: 1px solid var(--card-border); padding: 24px 30px; border-radius: 16px; flex: 1; min-width: 220px; transition: transform 0.3s ease, border-color 0.3s ease; }
+  .stat-item:hover { transform: translateY(-5px); border-color: rgba(198,161,91,0.4); }
+  .stat-item .number { font-family: 'Cormorant Garamond', serif; font-size: 40px; color: var(--gold); font-weight: 700; }
+  .stat-item .label { font-size: 13px; color: var(--text-muted); margin-top: 6px; line-height: 1.4; }
+  .source-note { text-align:center; max-width:700px; margin:24px auto; color:var(--text-faint); font-size:12.5px; }
 
-  /* ---------- how it works ---------- */
-  .steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
+  .steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 28px; }
   @media (max-width: 780px) { .steps { grid-template-columns: 1fr; } }
-  .step-card {
-    background: var(--card); border: 1px solid var(--card-border); border-radius: 18px; padding: 28px 24px;
-    transition: transform 0.25s cubic-bezier(0.16,1,0.3,1), border-color 0.3s ease;
-  }
-  .step-card:hover { transform: translateY(-4px); border-color: rgba(198,161,91,0.4); }
-  .step-num {
-    width: 34px; height: 34px; border-radius: 10px; display: flex; align-items: center; justify-content: center;
-    background: rgba(198,161,91,0.1); color: var(--gold); font-weight: 600; font-size: 14px; margin-bottom: 16px;
-  }
-  .step-card h3 { font-size: 15.5px; font-weight: 600; margin-bottom: 8px; color: var(--text-primary); }
-  .step-card p { color: var(--text-muted); font-size: 13.5px; line-height: 1.6; }
+  .step-card { background: var(--card); border: 1px solid var(--card-border); border-radius: 20px; padding: 32px 28px; transition: all 0.35s cubic-bezier(0.16,1,0.3,1); position: relative; overflow: hidden; }
+  .step-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: linear-gradient(90deg, transparent, var(--gold), transparent); opacity: 0; transition: opacity 0.3s ease; }
+  .step-card:hover { transform: translateY(-6px); border-color: rgba(198,161,91,0.5); box-shadow: 0 20px 40px rgba(0,0,0,0.4); }
+  .step-card:hover::before { opacity: 1; }
+  .step-num { width: 40px; height: 40px; border-radius: 12px; display: flex; align-items: center; justify-content: center; background: rgba(198,161,91,0.12); color: var(--gold); font-weight: 600; font-size: 15px; margin-bottom: 20px; border: 1px solid rgba(198,161,91,0.2); }
+  .step-card h3 { font-size: 17px; font-weight: 600; margin-bottom: 10px; color: var(--text-primary); }
+  .step-card p { color: var(--text-muted); font-size: 14px; line-height: 1.6; }
 
-  /* ---------- demo interactiv ---------- */
-  .demo-section { display: grid; grid-template-columns: 1fr 1fr; gap: 56px; align-items: center; }
-  @media (max-width: 860px) { .demo-section { grid-template-columns: 1fr; } }
-  .demo-copy h2 { text-align: left; }
-  .demo-copy p.lead { color: var(--text-muted); font-size: 15.5px; margin-bottom: 20px; max-width: 420px; }
-  .demo-copy ul { list-style: none; display: flex; flex-direction: column; gap: 12px; }
-  .demo-copy li { color: var(--text-muted); font-size: 14px; display: flex; gap: 10px; align-items: flex-start; }
-  .demo-copy li::before { content: '✓'; color: var(--emerald); font-weight: 700; flex-shrink: 0; }
+  .demo-mobile-wrapper { display: grid; grid-template-columns: 1fr 1fr; gap: 50px; align-items: center; max-width: 1050px; margin: 0 auto; }
+  @media (max-width: 860px) { .demo-mobile-wrapper { grid-template-columns: 1fr; } }
+  .demo-mobile-copy h2 { text-align: left; }
+  @media (max-width: 860px) { .demo-mobile-copy h2 { text-align: center; } }
+  .demo-mobile-copy p.lead { color: var(--text-muted); font-size: 16px; margin-bottom: 24px; }
+  .demo-mobile-copy ul { list-style: none; display: flex; flex-direction: column; gap: 14px; }
+  .demo-mobile-copy li { color: var(--text-muted); font-size: 14.5px; display: flex; gap: 12px; align-items: flex-start; }
+  .demo-mobile-copy li::before { content: '✓'; color: var(--emerald); font-weight: 700; flex-shrink: 0; font-size: 16px; }
 
-  .phone {
-    width: 280px; margin: 0 auto; border-radius: 32px; border: 8px solid #1a1712;
-    background: var(--bg); box-shadow: 0 40px 90px -20px rgba(0,0,0,0.7);
-    overflow: hidden; position: relative;
-  }
-  .phone-screen { min-height: 420px; padding: 30px 22px; display: flex; flex-direction: column; justify-content: center; position: relative; }
+  .phone-frame { position: relative; width: 100%; max-width: 360px; margin: 0 auto; padding: 36px 24px; background: linear-gradient(145deg, #14120e, #0b0a08); border-radius: 28px; border: 1px solid rgba(198,161,91,0.25); box-shadow: 0 30px 80px rgba(0,0,0,0.8), inset 0 1px 0 rgba(255,255,255,0.1); color: #F5F0E6; overflow: hidden; }
+  .phone-corners { position: absolute; inset: 16px; pointer-events: none; z-index: 0; }
+  .phone-corners::before, .phone-corners::after, .phone-corners span::before, .phone-corners span::after { content: ''; position: absolute; width: 16px; height: 16px; border-color: rgba(198,161,91,0.6); border-style: solid; }
+  .phone-corners::before { top: 0; left: 0; border-width: 1.5px 0 0 1.5px; }
+  .phone-corners::after { top: 0; right: 0; border-width: 1.5px 1.5px 0 0; }
+  .phone-corners span::before { bottom: 0; left: 0; border-width: 0 0 1.5px 1.5px; }
+  .phone-corners span::after { bottom: 0; right: 0; border-width: 0 1.5px 1.5px 0; }
+
+  .phone-screen { position: relative; z-index: 1; min-height: 310px; display: flex; flex-direction: column; justify-content: center; }
   .phone-view { display: none; }
-  .phone-view.active { display: block; animation: fadeIn 0.4s ease; }
-  @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
-  .demo-title { font-family: 'Cormorant Garamond', serif; font-size: 18px; text-align: center; margin-bottom: 6px; }
-  .demo-q { text-align: center; color: var(--text-primary); font-size: 14.5px; margin-bottom: 22px; }
-  .demo-btn {
-    width: 100%; padding: 13px; border-radius: 12px; border: none; font-size: 13.5px; font-weight: 600;
-    cursor: pointer; margin-bottom: 10px; transition: transform 0.18s ease;
-  }
-  .demo-btn:active { transform: scale(0.97); }
-  .demo-btn.positive { background: linear-gradient(135deg, var(--gold-light), var(--gold)); color: #100F0D; }
-  .demo-btn.negative { background: transparent; border: 1px solid rgba(255,255,255,0.12); color: #C9C2B4; }
-  .demo-textarea {
-    width: 100%; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1); border-radius: 10px;
-    padding: 12px; color: var(--text-primary); font-size: 13px; font-family: inherit; resize: none; margin-bottom: 12px;
-  }
-  .demo-result { text-align: center; }
-  .demo-result .icon { font-size: 34px; margin-bottom: 10px; }
-  .demo-result p { color: var(--text-muted); font-size: 13px; margin-bottom: 16px; }
-  .demo-reset { color: var(--text-faint); font-size: 12px; text-decoration: underline; cursor: pointer; text-align: center; display: block; margin-top: 10px; }
+  .phone-view.active { display: block; animation: viewFade 0.45s cubic-bezier(0.16,1,0.3,1); }
+  @keyframes viewFade { from { opacity: 0; transform: scale(0.96) translateY(10px); } to { opacity: 1; transform: scale(1) translateY(0); } }
 
-  /* ---------- dashboard highlights ---------- */
-  .feature-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 18px; }
-  .feature-card {
-    background: var(--card); border: 1px solid var(--card-border); border-radius: 16px; padding: 22px;
-    border-left: 2px solid var(--gold); transition: transform 0.25s ease, border-color 0.3s ease;
-  }
-  .feature-card:hover { transform: translateY(-3px); border-color: rgba(198,161,91,0.4); }
-  .feature-card .stat { font-family: 'Cormorant Garamond', serif; font-size: 26px; color: var(--gold); margin-bottom: 6px; }
-  .feature-card h3 { font-size: 14px; font-weight: 600; margin-bottom: 6px; }
-  .feature-card p { color: var(--text-muted); font-size: 13px; line-height: 1.5; }
+  .p-title { font-family: 'Cormorant Garamond', serif; font-size: 25px; text-align: center; margin-bottom: 22px; color: #F5F0E6; font-weight: 600; letter-spacing: 0.04em; }
+  .p-q { text-align: center; color: #F5F0E6; font-size: 15px; font-weight: 500; margin-bottom: 24px; line-height: 1.4; }
+  .p-btn { width: 100%; padding: 15px; border-radius: 12px; border: none; font-size: 14.5px; font-weight: 600; cursor: pointer; margin-bottom: 12px; transition: all 0.25s ease; text-align: center; display: flex; justify-content: center; align-items: center; gap: 10px; font-family: inherit; }
+  .p-btn:active { transform: scale(0.97); }
+  .p-btn.positive { background: linear-gradient(135deg, #E8D2A0, #C6A15B); color: #0B0A08; box-shadow: 0 4px 15px rgba(198,161,91,0.3); }
+  .p-btn.positive:hover { filter: brightness(1.1); transform: translateY(-1px); }
+  .p-btn.negative { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.12); color: #9C9382; font-weight: 400; }
+  .p-btn.negative:hover { border-color: rgba(255,255,255,0.35); color: #F5F0E6; background: rgba(255,255,255,0.06); }
+  .p-input { width: 100%; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.12); border-radius: 10px; padding: 13px; color: #F5F0E6; font-size: 14px; font-family: inherit; margin-bottom: 12px; outline: none; transition: border-color 0.3s; }
+  .p-input::placeholder { color: #6B6558; }
+  .p-input:focus { border-color: var(--gold); background: rgba(255,255,255,0.05); }
+  .p-textarea { resize: none; min-height: 85px; }
+  .p-check-icon { width: 52px; height: 52px; border-radius: 50%; border: 1.5px solid var(--gold); display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; color: var(--gold); font-size: 22px; background: rgba(198,161,91,0.08); animation: pulseCheck 2s infinite ease-in-out; }
+  @keyframes pulseCheck { 0%,100% { box-shadow: 0 0 0 0 rgba(198,161,91,0.3); } 50% { box-shadow: 0 0 0 10px rgba(198,161,91,0); } }
+  .p-thanks-title { font-size: 14.5px; font-weight: 600; text-align: center; margin-bottom: 10px; color: #F5F0E6; }
+  .p-thanks-desc { font-size: 12.5px; color: #9C9382; text-align: center; margin-bottom: 22px; line-height: 1.5; }
+  .p-reset { color: var(--gold-deep); font-size: 12.5px; text-decoration: underline; cursor: pointer; text-align: center; display: block; margin-top: 16px; opacity: 0.9; transition: opacity 0.2s; }
+  .p-reset:hover { opacity: 1; color: var(--gold); }
 
-  /* ---------- pricing ---------- */
-  .price-card {
-    max-width: 420px; margin: 0 auto; text-align: center;
-    background: var(--card); border: 1px solid rgba(198,161,91,0.3); border-radius: 22px; padding: 44px 32px;
+  /* =========================================================
+     DEMO 2: PANOUL DE ADMINISTRARE -- clona vizuala a dashboard-ului real
+     ========================================================= */
+  .admin-demo-container { max-width: 960px; margin: 0 auto; background: var(--card); border: 1px solid var(--card-border); border-radius: 24px; padding: 44px; box-shadow: 0 35px 80px rgba(0,0,0,0.6); position: relative; overflow: hidden; }
+  .admin-demo-container::before { content: ''; position: absolute; inset: 0; background: radial-gradient(circle at 100% 0%, rgba(198,161,91,0.06), transparent 50%); pointer-events: none; }
+
+  .demo-disclaimer {
+    display: flex; align-items: center; gap: 10px; background: rgba(198,161,91,0.07);
+    border: 1px solid rgba(198,161,91,0.25); border-radius: 12px; padding: 12px 16px;
+    margin-bottom: 28px; font-size: 12.5px; color: var(--gold-light); position: relative;
+  }
+  .demo-disclaimer .lock { font-size: 15px; flex-shrink: 0; }
+
+  .admin-corner-frame { position: relative; }
+  .admin-corner-frame span { position: absolute; width: 18px; height: 18px; border-color: var(--gold); animation: cornerGlow 4s ease-in-out infinite; }
+  .admin-corner-frame span:nth-child(1) { top: -8px; left: -8px; border-top: 1px solid var(--gold); border-left: 1px solid var(--gold); border-top-left-radius: 4px; }
+  .admin-corner-frame span:nth-child(2) { top: -8px; right: -8px; border-top: 1px solid var(--gold); border-right: 1px solid var(--gold); border-top-right-radius: 4px; animation-delay: 0.5s; }
+  .admin-corner-frame span:nth-child(3) { bottom: -8px; left: -8px; border-bottom: 1px solid var(--gold); border-left: 1px solid var(--gold); border-bottom-left-radius: 4px; animation-delay: 1s; }
+  .admin-corner-frame span:nth-child(4) { bottom: -8px; right: -8px; border-bottom: 1px solid var(--gold); border-right: 1px solid var(--gold); border-bottom-right-radius: 4px; animation-delay: 1.5s; }
+  @keyframes cornerGlow { 0%,100% { opacity: 0.45; } 50% { opacity: 1; } }
+
+  .admin-view-box { display: none; }
+  .admin-view-box.active { display: block; animation: viewFade 0.45s cubic-bezier(0.16,1,0.3,1); }
+
+  .dash-topbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 28px; border-bottom: 1px solid var(--card-border); padding-bottom: 18px; flex-wrap: wrap; gap: 12px; }
+  .dash-topbar h3 { font-family: 'Cormorant Garamond', serif; font-size: 24px; color: var(--text-primary); }
+
+  /* rata de satisfactie -- sclipire de alama, identic cu panoul real */
+  .satisfaction-hero {
+    display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;
+    background: rgba(11,10,8,0.5); border: 1px solid var(--card-border); border-radius: 16px; padding: 22px; margin-bottom: 20px;
     position: relative; overflow: hidden;
   }
-  .price-card::before {
-    content: ''; position: absolute; inset: 0; background: radial-gradient(circle at 50% 0%, rgba(198,161,91,0.1), transparent 60%);
-    pointer-events: none;
+  .satisfaction-hero::before { content:''; position:absolute; inset:0; background: radial-gradient(circle at 15% 30%, rgba(198,161,91,0.1), transparent 60%); pointer-events:none; }
+  .satisfaction-label { color: var(--text-muted); font-size: 12.5px; margin-bottom: 4px; }
+  .satisfaction-value {
+    font-family: 'Cormorant Garamond', serif; font-size: 42px; font-weight: 700;
+    background: linear-gradient(90deg, var(--gold) 0%, var(--gold-light) 25%, var(--gold) 50%, var(--gold-deep) 75%, var(--gold) 100%);
+    background-size: 200% auto; -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+    animation: shimmer 3.5s linear infinite;
   }
-  .price-value { font-family: 'Cormorant Garamond', serif; font-size: 52px; font-weight: 700; color: var(--gold); position: relative; }
+  .satisfaction-trend { text-align: right; position: relative; }
+  .satisfaction-trend .up { color: var(--emerald); font-size: 15px; font-weight: 600; }
+  .satisfaction-trend .sub { color: var(--text-faint); font-size: 11.5px; }
+
+  .kpi-grid-new { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 24px; }
+  @media(max-width: 768px) { .kpi-grid-new { grid-template-columns: repeat(2, 1fr); } }
+  .kpi-card-new { background: rgba(11,10,8,0.6); border: 1px solid var(--card-border); padding: 18px; border-radius: 14px; border-left: 2px solid; transition: transform 0.25s cubic-bezier(0.16,1,0.3,1), border-color 0.3s ease; }
+  .kpi-card-new:hover { transform: translateY(-3px); border-color: rgba(198,161,91,0.4); }
+  .kpi-num-val { font-size: 26px; font-weight: 700; font-family: 'Cormorant Garamond', serif; margin-bottom: 4px; }
+  .kpi-lbl-val { font-size: 12px; color: var(--text-muted); }
+
+  .dash-panel-box { background: rgba(11,10,8,0.4); border: 1px solid var(--card-border); border-radius: 16px; padding: 22px; margin-bottom: 24px; }
+
+  .chart-container-adv { height: 160px; border-bottom: 1px solid rgba(255,255,255,0.1); border-left: 1px solid rgba(255,255,255,0.1); position: relative; margin-top: 15px; display: flex; align-items: flex-end; justify-content: space-around; padding: 0 10px; }
+  .chart-col { display: flex; flex-direction: column; align-items: center; gap: 6px; width: 12%; height: 100%; justify-content: flex-end; }
+  .chart-bar-wrap { width: 100%; display: flex; gap: 3px; height: 100%; align-items: flex-end; }
+  .c-bar { width: 50%; border-radius: 4px 4px 0 0; transition: height 1s cubic-bezier(0.16,1,0.3,1); height: 0%; }
+  .c-bar.green { background: var(--emerald); }
+  .c-bar.red { background: var(--terracotta); }
+  .chart-lbl { font-size: 11px; color: var(--text-muted); margin-top: 8px; text-align: center; }
+
+  .data-table-adv { width: 100%; border-collapse: collapse; margin-top: 12px; font-size: 13px; }
+  .data-table-adv th, .data-table-adv td { text-align: left; padding: 12px 10px; border-bottom: 1px solid rgba(255,255,255,0.06); }
+  .data-table-adv th { color: var(--text-muted); font-weight: 500; font-size: 12px; text-transform: uppercase; letter-spacing: 0.05em; }
+
+  .complaint-row-item { display: flex; justify-content: space-between; padding: 14px 12px; border-bottom: 1px solid rgba(255,255,255,0.05); align-items: center; border-radius: 8px; transition: background 0.2s; }
+  .complaint-row-item:hover { background: rgba(255,255,255,0.02); }
+  .c-text-main { font-size: 13.5px; margin-bottom: 3px; color: #f5f5f5; }
+  .c-time-sub { font-size: 11.5px; color: var(--text-muted); }
+  .badge-status { padding: 4px 12px; border-radius: 20px; font-size: 11.5px; font-weight: 500; border: 1px solid; }
+  .status-resolved { color: var(--emerald); border-color: rgba(143,211,160,0.4); background: rgba(143,211,160,0.08); }
+
+  .feature-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 20px; }
+  .feature-card { background: var(--card); border: 1px solid var(--card-border); border-radius: 18px; padding: 26px; border-left: 3px solid var(--gold); transition: transform 0.3s ease, border-color 0.3s ease; }
+  .feature-card:hover { transform: translateY(-4px); border-color: rgba(198,161,91,0.5); }
+  .feature-card .stat { font-family: 'Cormorant Garamond', serif; font-size: 28px; color: var(--gold); margin-bottom: 8px; }
+  .feature-card h3 { font-size: 15px; font-weight: 600; margin-bottom: 8px; color: var(--text-primary); }
+  .feature-card p { color: var(--text-muted); font-size: 13.5px; line-height: 1.55; }
+
+  .price-card { max-width: 440px; margin: 0 auto; text-align: center; background: var(--card); border: 1px solid rgba(198,161,91,0.35); border-radius: 24px; padding: 48px 36px; position: relative; overflow: hidden; box-shadow: 0 25px 60px rgba(0,0,0,0.5); }
+  .price-card::before { content: ''; position: absolute; inset: 0; background: radial-gradient(circle at 50% 0%, rgba(198,161,91,0.12), transparent 65%); pointer-events: none; }
+  .price-value { font-family: 'Cormorant Garamond', serif; font-size: 56px; font-weight: 700; color: var(--gold); position: relative; }
   .price-value span { font-size: 16px; color: var(--text-muted); font-family: 'Inter', sans-serif; font-weight: 400; }
-  .price-card .includes { color: var(--text-muted); font-size: 14px; margin: 14px 0 26px; position: relative; }
-  .price-list { list-style: none; text-align: left; display: flex; flex-direction: column; gap: 10px; margin-bottom: 28px; position: relative; }
-  .price-list li { color: var(--text-primary); font-size: 13.5px; display: flex; gap: 10px; align-items: flex-start; }
+  .price-card .includes { color: var(--text-muted); font-size: 14.5px; margin: 16px 0 28px; }
+  .price-list { list-style: none; text-align: left; display: flex; flex-direction: column; gap: 12px; margin-bottom: 32px; }
+  .price-list li { color: var(--text-primary); font-size: 14px; display: flex; gap: 12px; align-items: flex-start; }
   .price-list li::before { content: '✓'; color: var(--emerald); font-weight: 700; flex-shrink: 0; }
-  .price-note { color: var(--text-faint); font-size: 12px; position: relative; }
+  .price-note { color: var(--text-faint); font-size: 12.5px; }
 
-  /* ---------- cta final ---------- */
-  .final-cta { text-align: center; padding-bottom: 100px; }
-  .final-cta h2 { max-width: 500px; margin: 0 auto 14px; }
-  .final-cta p { color: var(--text-muted); font-size: 15px; margin-bottom: 30px; }
+  .final-cta { text-align: center; padding-bottom: 110px; }
+  .final-cta h2 { max-width: 520px; margin: 0 auto 16px; }
+  .final-cta p { color: var(--text-muted); font-size: 16px; margin-bottom: 32px; }
 
-  footer {
-    max-width: 1180px; margin: 0 auto; padding: 30px clamp(20px,6vw,64px);
-    display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;
-    border-top: 1px solid rgba(255,255,255,0.06); color: var(--text-faint); font-size: 12.5px;
-  }
-  footer a { color: var(--text-faint); }
+  footer { max-width: 1180px; margin: 0 auto; padding: 35px clamp(20px,6vw,64px); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; border-top: 1px solid rgba(255,255,255,0.08); color: var(--text-faint); font-size: 13px; }
+  footer a { color: var(--text-faint); text-decoration: none; transition: color 0.2s; }
+  footer a:hover { color: var(--gold); }
+  footer .site-title { font-size: 15px; font-weight: 600; color: var(--text-muted); }
 
-  @media (prefers-reduced-motion: reduce) {
-    * { animation: none !important; transition: none !important; }
-  }
+  @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
 </style>
 </head>
 <body>
+
+<div id="scrollProgress"></div>
 
 <div class="embers">
   <div class="ember ember-1"></div>
@@ -268,99 +306,118 @@
 </div>
 
 <header>
-  <div class="logo wordmark">Plăcuțe <span>Recenzii</span></div>
+  <div class="site-title">
+    <img src="https://i.postimg.cc/wjx5rCz1/Chat-GPT-Image-Aug-9-2026-02-09-37-PM.png" alt="Logo">
+    <span>Plăcuțe Recenzii</span>
+  </div>
   <a class="nav-cta" href="#contact">Cere ofertă</a>
 </header>
 
 <section class="hero">
   <div>
-    <span class="eyebrow">Pentru restaurante &amp; complexuri HoReCa</span>
-    <h1>Recenzia proastă nu mai ajunge <span class="shimmer">niciodată pe Google.</span></h1>
-    <p class="lead">O plăcuță elegantă, un cod QR, și un sistem simplu care separă clienții mulțumiți de cei nemulțumiți — înainte să scrie ceva public.</p>
-    <div class="cta-row">
-      <a class="btn-primary" href="#demo">Vezi cum funcționează</a>
+    <span class="eyebrow hero-title-reveal">Pentru restaurante &amp; complexuri HoReCa</span>
+    <h1 class="hero-title-reveal">Filtrează inteligent <span class="shimmer">recenziile primite.</span></h1>
+    <p class="lead hero-title-reveal">O plăcuță elegantă cu un cod QR care separă clienții mulțumiți de cei nemulțumiți. Chiar dacă nu putem opri 100% textele nedrepte, sistemul te ajută să rezolvi nemulțumirile în privat, crescând simultan numărul de recenzii pozitive publice.</p>
+    <div class="cta-row hero-title-reveal">
+      <a class="btn-primary" href="#demo-mobile">Testează simulatorul QR</a>
       <a class="btn-ghost" href="#contact">Cere ofertă</a>
     </div>
   </div>
-  <div class="plaque-wrap">
-    <div class="plaque">
-      <div class="plaque-title">CUM A FOST<br>EXPERIENȚA TA?</div>
-      <div class="qr-mock" id="qrMock"></div>
-      <div class="plaque-sub">Scanează pentru feedback</div>
-    </div>
+  <div class="plaque-wrap" id="plaqueWrap">
+    <img src="https://i.postimg.cc/wjx5rCz1/Chat-GPT-Image-Aug-9-2026-02-09-37-PM.png" alt="Plăcuță feedback cu QR" class="plaque-img" id="plaqueImg">
   </div>
 </section>
 
-<div class="problem-statement fade-up">
-  <p>O singură recenzie de <span class="highlight">1 stea</span>, vizibilă public pe Google, poate cântări în decizia a zeci de clienți care nici n-au pus vreodată piciorul la tine.</p>
+<div class="problem-statement reveal">
+  <p><span class="highlight">O singură recenzie de 1 stea</span>, vizibilă public, poate cântări în decizia unor zeci de clienți care n-au pus niciodată piciorul la tine.</p>
 </div>
 
+<div class="stats-row reveal">
+  <div class="stat-item">
+    <div class="number">peste 90%</div>
+    <div class="label">dintre consumatori citesc recenzii online înainte să aleagă un local (BrightLocal, sondaje anuale)</div>
+  </div>
+  <div class="stat-item">
+    <div class="number">5–9%</div>
+    <div class="label">creștere estimată a veniturilor per stea în plus la rating, conform unui studiu Harvard Business School (Luca)</div>
+  </div>
+  <div class="stat-item">
+    <div class="number">1 stea</div>
+    <div class="label">diferența care poate influența decizia a zeci de clienți potențiali</div>
+  </div>
+</div>
+<p class="source-note reveal">Cifrele sunt estimări din cercetări publice, nu garanții specifice pentru afacerea ta — fiecare local e diferit.</p>
+
 <section class="section" id="how">
-  <div class="section-head fade-up">
+  <div class="section-head reveal">
     <div class="section-eyebrow">Cum funcționează</div>
-    <h2>Trei pași, cât timp clientul așteaptă nota de plată</h2>
-    <p>Fără aplicație de instalat, fără cont de creat. Doar un scan.</p>
+    <h2>Trei pași simpli, control maxim</h2>
+    <p>Fără aplicații sau conturi complicate. Un scan direct din cameră.</p>
   </div>
   <div class="steps">
-    <div class="step-card fade-up">
-      <div class="step-num">1</div>
-      <h3>Clientul scanează</h3>
-      <p>Codul QR e pe masă, pe notă, sau la ieșire — oriunde alegi tu să pui plăcuța.</p>
+    <div class="step-card reveal">
+      <div class="step-num" aria-hidden="true">1</div>
+      <h3>Clientul scanează plăcuța</h3>
+      <p>Codul QR de pe masă sau de la ieșire îl duce pe o pagină web simplă, elegantă, cu branding-ul tău.</p>
     </div>
-    <div class="step-card fade-up">
-      <div class="step-num">2</div>
-      <h3>Alege în două secunde</h3>
-      <p>O singură întrebare: experiență plăcută, sau ceva n-a fost pe plac.</p>
+    <div class="step-card reveal">
+      <div class="step-num" aria-hidden="true">2</div>
+      <h3>Își spune părerea</h3>
+      <p>Alege între „Experiență plăcută" sau „Ceva nu a fost pe plac". Simplu, o singură atingere.</p>
     </div>
-    <div class="step-card fade-up">
-      <div class="step-num">3</div>
-      <h3>Se separă automat</h3>
-      <p>Pozitiv → direct spre Google Reviews. Negativ → ajunge privat la tine, cu toate detaliile.</p>
+    <div class="step-card reveal">
+      <div class="step-num" aria-hidden="true">3</div>
+      <h3>Filtrează și direcționează</h3>
+      <p>Cei mulțumiți ajung pe Google pentru a lăsa 5 stele. Cei nemulțumiți te contactează direct pe tine, în privat — înainte să devină o recenzie publică.</p>
     </div>
   </div>
 </section>
 
-<section class="section demo-section" id="demo">
-  <div class="demo-copy">
-    <div class="section-eyebrow fade-up">Încearcă chiar tu</div>
-    <h2 class="fade-up">Exact ce vede clientul tău</h2>
-    <p class="lead fade-up">Apasă unul din butoane, ca și cum ai fi la o masă chiar acum.</p>
-    <ul class="fade-up">
-      <li>Fără parolă, fără aplicație — funcționează din orice browser de telefon</li>
-      <li>Recenzia negativă rămâne privată, nu devine niciodată publică</li>
-      <li>Linkul de Google rămâne vizibil oricând, inclusiv după o reclamație</li>
-    </ul>
-  </div>
-  <div class="fade-up">
-    <div class="phone">
-      <div class="phone-screen">
-        <div class="phone-view active" id="view-initial">
-          <div class="demo-title">Complex Herăstrău</div>
-          <p class="demo-q">Cum a fost experiența ta astăzi?</p>
-          <button class="demo-btn positive" onclick="showView('positive')">★ Am avut o experiență plăcută</button>
-          <button class="demo-btn negative" onclick="showView('negative-form')">Ceva nu a fost pe placul meu</button>
-        </div>
+<section class="section" id="demo-mobile">
+  <div class="demo-mobile-wrapper">
+    <div class="demo-mobile-copy reveal">
+      <div class="section-eyebrow">Interactivitate pe mobil</div>
+      <h2>Exact ce vede clientul tău la masă</h2>
+      <p class="lead">Testează direct pe simulatorul de mai jos cum reacționează interfața atunci când un client scanează codul QR de pe plăcuță.</p>
+      <ul>
+        <li><strong>Design minimalist &amp; fluid:</strong> adaptat instant pentru orice telefon, fără timpi de așteptare.</li>
+        <li><strong>Rutare inteligentă:</strong> clienții fericiți sunt ghidați spre Google Reviews.</li>
+        <li><strong>Protecție activă:</strong> feedbackul negativ e oprit și trimis în privat, direct către echipa ta.</li>
+      </ul>
+    </div>
 
-        <div class="phone-view" id="view-positive">
-          <div class="demo-result">
-            <div class="icon">⭐</div>
-            <p>Te-ar duce acum spre Google Reviews, ca să lași o recenzie publică.</p>
-            <span class="demo-reset" onclick="showView('initial')">← Încearcă din nou</span>
+    <div class="reveal">
+      <div class="phone-frame">
+        <div class="phone-corners"><span></span></div>
+        <div class="phone-screen">
+          <div class="phone-view active" id="view-initial">
+            <div class="p-title">Numele Afacerii Tale</div>
+            <p class="p-q">Cum a fost experiența ta astăzi la noi?</p>
+            <button type="button" class="p-btn positive" onclick="showMobileView('redirect')"><span style="font-size: 17px;">★</span> Am avut o experiență plăcută</button>
+            <button type="button" class="p-btn negative" onclick="showMobileView('negative-form')">Ceva nu a fost pe placul meu</button>
           </div>
-        </div>
-
-        <div class="phone-view" id="view-negative-form">
-          <div class="demo-title" style="margin-bottom: 4px;">Ne pare rău să auzim asta</div>
-          <p class="demo-q" style="font-size: 12.5px; color: var(--text-muted);">Spune-ne ce nu a fost în regulă</p>
-          <textarea class="demo-textarea" rows="3" placeholder="Ce nu a fost pe placul tău?"></textarea>
-          <button class="demo-btn positive" onclick="showView('negative-thanks')">Trimite</button>
-        </div>
-
-        <div class="phone-view" id="view-negative-thanks">
-          <div class="demo-result">
-            <div class="icon">✓</div>
-            <p>Mulțumim — mesajul ajunge direct și privat la restaurant, nu devine public.</p>
-            <span class="demo-reset" onclick="showView('initial')">← Încearcă din nou</span>
+          <div class="phone-view" id="view-negative-form">
+            <div class="p-title">Numele Afacerii Tale</div>
+            <p class="p-q" style="margin-bottom: 6px;">Ne pare rău să auzim asta.</p>
+            <p style="text-align: center; font-size: 12px; color: #9C9382; margin-bottom: 16px;">Spune-ne ce nu a fost în regulă — mesajul ajunge direct în panoul de control.</p>
+            <textarea class="p-input p-textarea" placeholder="Ce nu a fost pe placul tău?"></textarea>
+            <input type="text" class="p-input" placeholder="Nume / Telefon / Email (opțional)">
+            <button type="button" class="p-btn positive" onclick="submitNegativeMobile()">Trimite în privat</button>
+          </div>
+          <div class="phone-view" id="view-negative-thanks">
+            <div class="p-title">Numele Afacerii Tale</div>
+            <div class="p-check-icon">✓</div>
+            <p class="p-thanks-title">Mulțumim, mesajul a ajuns la echipă!</p>
+            <p class="p-thanks-desc">Am interceptat nemulțumirea în privat, protejând imaginea publică a localului.</p>
+            <button type="button" class="p-btn negative" onclick="showMobileView('redirect')" style="font-size: 13px;">Lasă totuși o recenzie publică pe Google ↗</button>
+            <span class="p-reset" onclick="showMobileView('initial')">← Testează din nou</span>
+          </div>
+          <div class="phone-view" id="view-redirect">
+            <div class="p-title">Numele Afacerii Tale</div>
+            <div class="p-check-icon" style="border-color: #4285F4; color: #4285F4; font-family: sans-serif; font-weight: bold; background: rgba(66,133,244,0.1);">G</div>
+            <p class="p-thanks-title">Redirecționare spre Google Reviews...</p>
+            <p class="p-thanks-desc">Aici clientul mulțumit lasă direct recenzia de 5 stele.</p>
+            <span class="p-reset" onclick="showMobileView('initial')">← Întoarce-te la simulator</span>
           </div>
         </div>
       </div>
@@ -368,42 +425,133 @@
   </div>
 </section>
 
-<section class="section" id="dashboard">
-  <div class="section-head fade-up">
-    <div class="section-eyebrow">Panoul tău</div>
-    <h2>Vezi exact ce se întâmplă, în timp real</h2>
-    <p>Fiecare restaurant primește propriul panou — fără parolă, doar codul primit pe email.</p>
+<section class="section" id="demo-admin">
+  <div class="section-head reveal">
+    <div class="section-eyebrow">Panoul de control al proprietarului</div>
+    <h2>Explorează panoul, în aceeași formă ca varianta reală</h2>
+    <p>Simulează autentificarea pentru a vedea fluxul de date, orele de vârf și reclamațiile private primite.</p>
   </div>
-  <div class="feature-grid">
-    <div class="feature-card fade-up">
-      <div class="stat">68%</div>
-      <h3>Rată de satisfacție</h3>
-      <p>Calculată automat din scanări, actualizată la fiecare vizită în panou.</p>
+
+  <div class="admin-demo-container reveal">
+    <div class="demo-disclaimer">
+      <span class="lock">🔒</span>
+      <span>Acesta e doar un demo interactiv, cu date fictive. Varianta reală e securizată: autentificare cu cod unic trimis pe email (fără parolă), acces limitat strict la restaurantul tău, verificat la nivel de bază de date.</span>
     </div>
-    <div class="feature-card fade-up">
-      <div class="stat">20–21h</div>
-      <h3>Ore de vârf</h3>
-      <p>Vezi exact când ai cel mai mult trafic — pe oră, zi, săptămână, lună sau an.</p>
+
+    <div id="admin-box-1" class="admin-view-box active" style="max-width: 380px; margin: 20px auto; text-align: center;">
+      <div class="admin-corner-frame" style="padding: 8px;">
+        <span></span><span></span><span></span><span></span>
+        <h3 style="font-family:'Cormorant Garamond',serif; font-size:22px; margin-bottom:10px; font-weight:600;">Panoul restaurantului tău</h3>
+        <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 20px;">Introdu emailul folosit pentru alertele de reclamații — primești un cod.</p>
+        <input type="email" id="adminEmailInput" class="p-input" value="manager@restaurantulmeu.ro" style="text-align: center;">
+        <button class="btn-primary" style="width: 100%; margin-top: 4px;" onclick="proceedToAdminCode()">Trimite cod</button>
+      </div>
     </div>
-    <div class="feature-card fade-up">
-      <div class="stat">Inbox</div>
-      <h3>Reclamații private</h3>
-      <p>Toate mesajele nemulțumiților, cu status și contact, exportabile în CSV.</p>
+
+    <div id="admin-box-2" class="admin-view-box" style="max-width: 380px; margin: 20px auto; text-align: center;">
+      <div class="admin-corner-frame" style="padding: 8px;">
+        <span></span><span></span><span></span><span></span>
+        <h3 style="font-family:'Cormorant Garamond',serif; font-size:22px; margin-bottom:10px; font-weight:600;">Panoul restaurantului tău</h3>
+        <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 20px;">Am trimis un cod la <strong id="lblDisplayEmail" style="color:var(--text-primary);"></strong>.</p>
+        <input type="text" class="p-input" value="482 917" style="text-align: center; letter-spacing: 4px; font-weight: bold;" readonly>
+        <button class="btn-primary" style="width: 100%; margin-top: 4px;" onclick="openAdminDashboardFinal()">Confirmă</button>
+        <span class="p-reset" onclick="resetAdminAuth()">← Folosește alt email</span>
+      </div>
     </div>
-    <div class="feature-card fade-up">
-      <div class="stat">1 click</div>
-      <h3>Setări simple</h3>
-      <p>Schimbi linkul de Google Reviews chiar tu, oricând, fără să ne scrii.</p>
+
+    <div id="admin-box-3" class="admin-view-box">
+      <div class="dash-topbar">
+        <h3>Complex Herăstrău</h3>
+        <button class="btn-ghost" onclick="resetAdminAuth()" style="padding: 6px 16px; font-size: 12px;">Delogare</button>
+      </div>
+
+      <div class="satisfaction-hero">
+        <div>
+          <div class="satisfaction-label">Rată satisfacție</div>
+          <div class="satisfaction-value" id="satisfactionNum">0%</div>
+        </div>
+        <div class="satisfaction-trend">
+          <div class="up">↑ 12%</div>
+          <div class="sub">scanări față de săptămâna trecută</div>
+        </div>
+      </div>
+
+      <div class="kpi-grid-new">
+        <div class="kpi-card-new" style="border-left-color: var(--sapphire);">
+          <div class="kpi-num-val" style="color: var(--sapphire);" data-target="142">0</div>
+          <div class="kpi-lbl-val">Scanări totale</div>
+        </div>
+        <div class="kpi-card-new" style="border-left-color: var(--emerald);">
+          <div class="kpi-num-val" style="color: var(--emerald);" data-target="38">0</div>
+          <div class="kpi-lbl-val">Recenzii Google direcționate</div>
+        </div>
+        <div class="kpi-card-new" style="border-left-color: var(--terracotta);">
+          <div class="kpi-num-val" style="color: var(--terracotta);" data-target="14">0</div>
+          <div class="kpi-lbl-val">Experiențe negative</div>
+        </div>
+        <div class="kpi-card-new" style="border-left-color: var(--gold);">
+          <div class="kpi-num-val" style="color: var(--gold);" data-target="2">0</div>
+          <div class="kpi-lbl-val">Reclamații necitite</div>
+        </div>
+      </div>
+
+      <div class="dash-panel-box">
+        <div style="display: flex; justify-content: space-between; align-items: center; font-size: 14px; margin-bottom: 8px;">
+          <strong>Scanări pe ore</strong>
+          <span style="color: var(--gold); font-size: 12.5px;">Vârf: 20:00 – 22:00</span>
+        </div>
+        <div class="chart-container-adv" id="ownerChart">
+          <div class="chart-col"><div class="chart-bar-wrap"><div class="c-bar green" data-h="30"></div><div class="c-bar red" data-h="10"></div></div><span class="chart-lbl">14:00</span></div>
+          <div class="chart-col"><div class="chart-bar-wrap"><div class="c-bar green" data-h="45"></div><div class="c-bar red" data-h="15"></div></div><span class="chart-lbl">16:00</span></div>
+          <div class="chart-col"><div class="chart-bar-wrap"><div class="c-bar green" data-h="60"></div><div class="c-bar red" data-h="20"></div></div><span class="chart-lbl">18:00</span></div>
+          <div class="chart-col"><div class="chart-bar-wrap"><div class="c-bar green" data-h="95"></div><div class="c-bar red" data-h="25"></div></div><span class="chart-lbl">20:00</span></div>
+          <div class="chart-col"><div class="chart-bar-wrap"><div class="c-bar green" data-h="80"></div><div class="c-bar red" data-h="10"></div></div><span class="chart-lbl">22:00</span></div>
+        </div>
+      </div>
+
+      <div class="dash-panel-box">
+        <strong style="font-size: 14px; display: block; margin-bottom: 6px;">Scanări în timp</strong>
+        <table class="data-table-adv">
+          <thead><tr><th>Perioadă</th><th>Total</th><th>Pozitive</th><th>Negative</th><th>% pozitive</th></tr></thead>
+          <tbody>
+            <tr><td>Azi</td><td>16</td><td style="color:var(--emerald)">13</td><td style="color:var(--terracotta)">3</td><td>81%</td></tr>
+            <tr><td>Ieri</td><td>22</td><td style="color:var(--emerald)">18</td><td style="color:var(--terracotta)">4</td><td>82%</td></tr>
+            <tr><td>Acum 2 zile</td><td>19</td><td style="color:var(--emerald)">16</td><td style="color:var(--terracotta)">3</td><td>84%</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="dash-panel-box">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 12px;">
+          <strong style="font-size: 14px;">Reclamații (0) · 2 rezolvate, ascunse din listă</strong>
+          <span style="font-size: 12px; color: var(--text-muted);">Descarcă CSV</span>
+        </div>
+        <p style="color: var(--text-muted); font-size: 13.5px;">Toate reclamațiile sunt rezolvate — bravo. Rămân doar în statistici și în export, nu mai apar aici.</p>
+      </div>
     </div>
   </div>
 </section>
 
+<section class="section" id="dashboard">
+  <div class="section-head reveal">
+    <div class="section-eyebrow">Avantaje cheie</div>
+    <h2>Control asupra reputației digitale</h2>
+    <p>Instrumente gândite special pentru a transforma feedbackul negativ în oportunități de fidelizare.</p>
+  </div>
+  <div class="feature-grid">
+    <div class="feature-card reveal"><div class="stat">68%</div><h3>Rată de satisfacție</h3><p>Calculată automat din scanări, actualizată la fiecare vizită în panou.</p></div>
+    <div class="feature-card reveal"><div class="stat">20–22</div><h3>Ora de vârf</h3><p>Graficul traficului pe ore, zile, săptămâni, luni sau ani.</p></div>
+    <div class="feature-card reveal"><div class="stat">Inbox</div><h3>Reclamații private</h3><p>Mesajele negative ajung direct la tine, nu devin niciodată publice.</p></div>
+    <div class="feature-card reveal"><div class="stat">1 click</div><h3>Setări simple</h3><p>Schimbi singur linkul de Google Reviews, oricând, fără cunoștințe tehnice.</p></div>
+  </div>
+</section>
+
 <section class="section" id="pricing">
-  <div class="section-head fade-up">
-    <div class="section-eyebrow">Preț</div>
+  <div class="section-head reveal">
+    <div class="section-eyebrow">Preț transparent</div>
     <h2>Simplu, fără costuri ascunse</h2>
   </div>
-  <div class="price-card fade-up">
+  <div class="price-card reveal">
     <div class="price-value">200 <span>lei / lună</span></div>
     <p class="includes">Include 3 plăcuțe cu cod QR</p>
     <ul class="price-list">
@@ -412,52 +560,126 @@
       <li>Link Google Reviews editabil oricând</li>
       <li>Plăcuțe suplimentare — 49 lei / bucată</li>
     </ul>
-    <p class="price-note">Fără angajament pe termen lung.</p>
+    <p class="price-note">Fără perioadă minimă de contract.</p>
   </div>
 </section>
 
 <section class="section final-cta" id="contact">
-  <h2 class="fade-up">Hai să punem prima plăcuță la tine.</h2>
-  <p class="fade-up">Răspundem în aceeași zi. Fără obligații, fără presiune.</p>
-  <a class="btn-primary fade-up" href="mailto:dimianic123@gmail.com?subject=Vreau%20plăcuțe%20recenzii">Scrie-ne</a>
+  <h2 class="reveal">Protejează-ți reputația. Începe chiar de azi.</h2>
+  <p class="reveal">Răspundem în aceeași zi. Fără obligații, doar o discuție despre cum te putem ajuta.</p>
+  <a class="btn-primary reveal" href="mailto:dimianic123@gmail.com?subject=Vreau%20plăcuțe%20recenzii">Scrie-ne pe email</a>
 </section>
 
 <footer>
-  <div class="wordmark">Plăcuțe Recenzii</div>
+  <div class="site-title"><img src="https://i.postimg.cc/wjx5rCz1/Chat-GPT-Image-Aug-9-2026-02-09-37-PM.png" alt="Logo"><span>Plăcuțe Recenzii</span></div>
   <div>© 2026 · <a href="mailto:dimianic123@gmail.com">dimianic123@gmail.com</a></div>
 </footer>
 
 <script>
-  // Demo interactiv -- comuta intre "ecranele" telefonului mock
-  function showView(name) {
-    document.querySelectorAll('.phone-view').forEach(function (el) { el.classList.remove('active'); });
-    document.getElementById('view-' + name).classList.add('active');
+  function showMobileView(viewName) {
+    document.querySelectorAll('.phone-view').forEach(el => el.classList.remove('active'));
+    document.getElementById('view-' + viewName).classList.add('active');
   }
 
-  // Genereaza un model vizual de tip QR (decorativ, nu scanabil real)
-  (function generateQrMock() {
-    const grid = document.getElementById('qrMock');
-    for (let i = 0; i < 49; i++) {
-      const cell = document.createElement('div');
-      // model pseudo-aleator dar stabil, cu colturile mereu pline (ca un QR real)
-      const row = Math.floor(i / 7), col = i % 7;
-      const isCorner = (row < 2 && col < 2) || (row < 2 && col > 4) || (row > 4 && col < 2);
-      cell.style.opacity = isCorner || Math.random() > 0.42 ? '1' : '0';
-      grid.appendChild(cell);
+  function submitNegativeMobile() {
+    const txtArea = document.querySelector('#view-negative-form .p-textarea');
+    if (txtArea.value.trim() === '') {
+      txtArea.style.borderColor = '#E0A88C';
+      txtArea.placeholder = 'Te rugăm să completezi un scurt detaliu...';
+      setTimeout(() => { txtArea.style.borderColor = 'rgba(255,255,255,0.12)'; txtArea.placeholder = 'Ce nu a fost pe placul tău?'; }, 2000);
+      return;
     }
-  })();
+    txtArea.value = '';
+    showMobileView('negative-thanks');
+  }
 
-  // Reveal la scroll
-  const observer = new IntersectionObserver((entries) => {
-    entries.forEach((entry) => {
-      if (entry.isIntersecting) {
-        entry.target.classList.add('visible');
-        observer.unobserve(entry.target);
-      }
+  function proceedToAdminCode() {
+    const emailVal = document.getElementById('adminEmailInput').value || 'manager@restaurantulmeu.ro';
+    document.getElementById('lblDisplayEmail').innerText = emailVal;
+    document.getElementById('admin-box-1').classList.remove('active');
+    document.getElementById('admin-box-2').classList.add('active');
+  }
+
+  let dashboardAnimated = false;
+  function openAdminDashboardFinal() {
+    document.getElementById('admin-box-2').classList.remove('active');
+    document.getElementById('admin-box-3').classList.add('active');
+    if (!dashboardAnimated) {
+      dashboardAnimated = true;
+      animateCountUp(document.getElementById('satisfactionNum'), 68, '%');
+      document.querySelectorAll('.kpi-num-val').forEach(el => animateCountUp(el, parseInt(el.dataset.target, 10), ''));
+      setTimeout(() => { document.querySelectorAll('#ownerChart .c-bar').forEach(bar => { bar.style.height = bar.dataset.h + '%'; }); }, 100);
+    }
+  }
+
+  function resetAdminAuth() {
+    document.getElementById('admin-box-3').classList.remove('active');
+    document.getElementById('admin-box-2').classList.remove('active');
+    document.getElementById('admin-box-1').classList.add('active');
+  }
+
+  // count-up identic ca principiu cu AnimatedNumber din aplicatia reala
+  function animateCountUp(el, target, suffix) {
+    const duration = 900, start = performance.now();
+    function step(now) {
+      const progress = Math.min((now - start) / duration, 1);
+      const eased = 1 - Math.pow(1 - progress, 3);
+      el.textContent = Math.round(eased * target) + suffix;
+      if (progress < 1) requestAnimationFrame(step);
+    }
+    requestAnimationFrame(step);
+  }
+
+  // ---------- word-split pe h2 ----------
+  document.querySelectorAll('h2').forEach(h2 => {
+    const words = h2.textContent.trim().split(/\s+/);
+    h2.textContent = '';
+    h2.classList.add('word-split');
+    words.forEach((word, i) => {
+      const span = document.createElement('span');
+      span.textContent = word + (i < words.length - 1 ? '\u00A0' : '');
+      span.style.transitionDelay = (i * 0.045) + 's';
+      h2.appendChild(span);
     });
-  }, { threshold: 0.15 });
+  });
 
-  document.querySelectorAll('.fade-up').forEach((el) => observer.observe(el));
+  const headingObserver = new IntersectionObserver((entries) => {
+    entries.forEach(entry => { if (entry.isIntersecting) { entry.target.classList.add('in-view'); headingObserver.unobserve(entry.target); } });
+  }, { threshold: 0.4 });
+  document.querySelectorAll('.word-split').forEach(el => headingObserver.observe(el));
+
+  // ---------- reveal generic ----------
+  const revealObserver = new IntersectionObserver((entries) => {
+    entries.forEach(entry => { if (entry.isIntersecting) { entry.target.classList.add('active'); revealObserver.unobserve(entry.target); } });
+  }, { threshold: 0.12 });
+  document.querySelectorAll('.reveal').forEach(el => revealObserver.observe(el));
+
+  // ---------- bara de progres la scroll ----------
+  let ticking = false;
+  window.addEventListener('scroll', () => {
+    if (!ticking) {
+      requestAnimationFrame(() => {
+        const h = document.documentElement;
+        const pct = (h.scrollTop) / (h.scrollHeight - h.clientHeight) * 100;
+        document.getElementById('scrollProgress').style.width = pct + '%';
+        ticking = false;
+      });
+      ticking = true;
+    }
+  });
+
+  // ---------- tilt usor pe placheta din hero, dupa cursor ----------
+  const plaqueWrap = document.getElementById('plaqueWrap');
+  const plaqueImg = document.getElementById('plaqueImg');
+  if (window.matchMedia('(hover: hover)').matches) {
+    plaqueWrap.addEventListener('mousemove', (e) => {
+      const rect = plaqueWrap.getBoundingClientRect();
+      const x = (e.clientX - rect.left) / rect.width - 0.5;
+      const y = (e.clientY - rect.top) / rect.height - 0.5;
+      plaqueImg.style.transform = `rotateY(${x * 14}deg) rotateX(${-y * 14}deg) scale(1.04)`;
+    });
+    plaqueWrap.addEventListener('mouseleave', () => { plaqueImg.style.transform = ''; });
+  }
 </script>
 
 </body>
