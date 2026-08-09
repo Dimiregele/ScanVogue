@@ -36,6 +36,7 @@ export default function ToggleActiveButton({
       type="button"
       onClick={handleClick}
       disabled={isPending}
+      className="admin-btn"
       style={{
         fontSize: 11,
         padding: "5px 10px",
@@ -46,6 +47,7 @@ export default function ToggleActiveButton({
         opacity: isPending ? 0.6 : 1,
         color: isActive ? "#8FD3A0" : "#E0A88C",
         borderColor: isActive ? "rgba(143,211,160,0.35)" : "rgba(224,168,140,0.35)",
+        transition: "transform 0.18s cubic-bezier(0.34,1.56,0.64,1), opacity 0.2s ease",
       }}
     >
       {isPending ? "..." : isActive ? "Activ" : "Inactiv"}
