@@ -84,6 +84,19 @@ export async function toggleRestaurantActive(restaurantId: string, newValue: boo
   redirect("/admin-x7k2");
 }
 
+// Sterge definitiv toate scanarile unui restaurant (util pentru curatarea
+// datelor de test inainte de lansarea reala cu un client). RLS ("admin
+// full access scans") permite asta doar contului de super-admin -- nu e
+// nevoie de client cu service_role. Reclamatiile NU sunt atinse aici,
+// doar scanarile.
+export async function clearRestaurantScans(restaurantId: string) {
+  const supabase = await getServerClient();
+  const { error } = await supabase.from("scans").delete().eq("restaurant_id", restaurantId);
+
+  if (error) throw error;
+  redirect("/admin-x7k2");
+}
+
 export async function signOut() {
   const supabase = await getServerClient();
   await supabase.auth.signOut();

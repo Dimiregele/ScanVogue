@@ -3,6 +3,7 @@ import { headers } from "next/headers";
 import { getServerClient } from "@/lib/supabase-server";
 import { createRestaurant, signOut } from "./actions";
 import ToggleActiveButton from "./toggle-active-button";
+import ClearScansButton from "./clear-scans-button";
 import { ADMIN_COLORS, ADMIN_GLOBAL_CSS, AdminEmbers, adminSectionTitleStyle } from "../_shared/decor";
 import AnimatedNumber from "../_shared/animated-number";
 
@@ -39,6 +40,19 @@ export default async function AdminHome() {
     .from("restaurants")
     .select("id, name, slug, is_active, alert_email, created_at")
     .order("created_at", { ascending: false });
+
+  const scanCounts = new Map<string, number>();
+  if (restaurants && restaurants.length > 0) {
+    await Promise.all(
+      restaurants.map(async (r) => {
+        const { count } = await supabase
+          .from("scans")
+          .select("*", { count: "exact", head: true })
+          .eq("restaurant_id", r.id);
+        scanCounts.set(r.id, count ?? 0);
+      })
+    );
+  }
 
   const host = (await headers()).get("host");
   const ownerLoginUrl = `https://${host}/gest-x4p7/login`;
@@ -125,11 +139,18 @@ export default async function AdminHome() {
                       </div>
                     </div>
                   </div>
-                  <ToggleActiveButton
-                    restaurantId={r.id}
-                    name={r.name}
-                    isActive={r.is_active}
-                  />
+                  <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap", justifyContent: "flex-end" }}>
+                    <ToggleActiveButton
+                      restaurantId={r.id}
+                      name={r.name}
+                      isActive={r.is_active}
+                    />
+                    <ClearScansButton
+                      restaurantId={r.id}
+                      name={r.name}
+                      scanCount={scanCounts.get(r.id) ?? 0}
+                    />
+                  </div>
                 </div>
               ))}
             </div>
