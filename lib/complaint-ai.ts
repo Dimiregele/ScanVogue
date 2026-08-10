@@ -39,6 +39,62 @@ Reguli pentru "sensitive" -- seteaza true daca mesajul mentioneaza ORICARE din:
 
 Cand esti nesigur, seteaza sensitive true -- e mai sigur sa marchezi in plus un caz obisnuit decat sa ratezi unul important.`;
 
+const THEMES_SYSTEM_PROMPT = `Esti un analist care ajuta proprietari de restaurante sa identifice tipare recurente in reclamatiile primite de la clienti.
+
+Primesti o lista numerotata de mesaje de reclamatie. Identifica cele mai frecvente 3-5 teme/probleme care apar in MAI MULTE mesaje diferite -- ignora problemele unice, mentionate o singura data.
+
+Raspunde STRICT cu JSON, fara alt text in jur:
+{"themes": [{"theme": "...", "count": N, "example": "..."}]}
+
+- "theme": descriere scurta in romana, maxim 6 cuvinte (ex: "timp de asteptare mare", "muzica prea tare")
+- "count": in cate mesaje diferite apare aceasta tema, aproximativ, dupa judecata ta
+- "example": un citat scurt, maxim 15 cuvinte, dintr-un mesaj reprezentativ pentru acea tema
+
+Sorteaza descrescator dupa count. Daca nu exista teme repetate clare (fiecare reclamatie e unica), intoarce {"themes": []}.`;
+
+type Theme = { theme: string; count: number; example: string };
+
+export async function analyzeThemes(messages: string[]): Promise<Theme[] | null> {
+  const apiKey = process.env.GROQ_API_KEY;
+  if (!apiKey || messages.length === 0) return null;
+
+  const numbered = messages.map((m, i) => `${i + 1}. ${m}`).join("\n");
+
+  try {
+    const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${apiKey}`,
+      },
+      body: JSON.stringify({
+        model: "openai/gpt-oss-120b",
+        response_format: { type: "json_object" },
+        max_tokens: 700,
+        messages: [
+          { role: "system", content: THEMES_SYSTEM_PROMPT },
+          { role: "user", content: numbered },
+        ],
+      }),
+    });
+
+    if (!res.ok) {
+      console.error("Groq API (teme) a raspuns cu eroare:", res.status, await res.text());
+      return null;
+    }
+
+    const data = await res.json();
+    const rawText: string = data?.choices?.[0]?.message?.content ?? "";
+    const cleaned = rawText.replace(/```json|```/g, "").trim();
+    const parsed = JSON.parse(cleaned);
+
+    if (!Array.isArray(parsed.themes)) return null;
+    return parsed.themes;
+  } catch (err) {
+    console.error("Analiza de teme a esuat:", err);
+    return null;
+  }
+}
 export async function analyzeComplaint(message: string): Promise<ComplaintAnalysis | null> {
   const apiKey = process.env.GROQ_API_KEY;
   if (!apiKey) {

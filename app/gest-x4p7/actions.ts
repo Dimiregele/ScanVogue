@@ -77,6 +77,33 @@ export async function sendComplaintReply(complaintId: string, replyText: string)
   revalidatePath("/gest-x4p7");
 }
 
+// Analiza AI peste toate reclamatiile (ultimele 90 de zile) ca sa gaseasca
+// probleme care se repeta -- nu se persista nicaieri, se calculeaza la
+// cerere cand proprietarul apasa butonul, ca sa nu platim un apel AI la
+// fiecare incarcare de pagina degeaba.
+export async function getRecurringThemes() {
+  const supabase = await getServerClient();
+  const ninetyDaysAgo = new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString();
+
+  const { data: complaints, error } = await supabase
+    .from("complaints")
+    .select("message")
+    .gte("created_at", ninetyDaysAgo)
+    .order("created_at", { ascending: false })
+    .limit(100);
+
+  if (error) throw error;
+  if (!complaints || complaints.length < 3) {
+    return { themes: [], tooFew: true };
+  }
+
+  const { analyzeThemes } = await import("@/lib/complaint-ai");
+  const themes = await analyzeThemes(complaints.map((c) => c.message));
+
+  if (!themes) throw new Error("Analiza a eșuat — încearcă din nou în câteva secunde.");
+  return { themes, tooFew: false };
+}
+
 // Doar linkul Google Reviews e editabil de proprietar. Adresa de alerta
 // (alert_email) nu e expusa aici -- RLS ar respinge oricum orice
 // incercare de schimbare a ei (owner-ul si-ar pierde accesul din proprie

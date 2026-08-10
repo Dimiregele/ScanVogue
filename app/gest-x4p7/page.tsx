@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { getServerClient } from "@/lib/supabase-server";
 import { signOutOwner } from "./actions";
 import ComplaintCard from "./complaint-card";
+import RecurringThemes from "./recurring-themes";
 import GoogleUrlSetting from "./google-url-setting";
 import ScanAnalytics from "./scan-analytics";
 import ExportComplaintsButton from "./export-complaints-button";
@@ -171,6 +172,8 @@ export default async function OwnerPanel() {
             {restaurant.alert_email} <span style={{ color: ADMIN_COLORS.textFaint }}>— contactează-ne pentru schimbare</span>
           </p>
         </section>
+
+        <RecurringThemes />
 
         <section className="admin-fade-5 admin-card" style={cardStyle}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", flexWrap: "wrap", gap: 8, marginBottom: 16 }}>
