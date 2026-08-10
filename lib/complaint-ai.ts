@@ -1,10 +1,15 @@
 // Analiza AI a reclamatiilor -- ruleaza STRICT server-side (foloseste
-// ANTHROPIC_API_KEY, nu trebuie sa ajunga niciodata in browser).
+// GROQ_API_KEY, nu trebuie sa ajunga niciodata in browser).
+//
+// Foloseste Groq (endpoint compatibil OpenAI) in loc de Anthropic direct --
+// mai ieftin, viteza foarte buna. Daca vreodata calitatea nu multumeste,
+// schimbarea inapoi la alt provider inseamna doar rescrierea acestui fisier,
+// restul aplicatiei (route.ts, actions.ts) nu stie si nu-i pasa care e
+// provider-ul din spate.
 //
 // Design deliberat: AI-ul NU trimite nimic automat catre client. Produce
 // doar un rezumat + o sugestie de raspuns, pe care proprietarul le vede in
-// panou si le aproba/editeaza manual inainte de trimitere. Vezi actions.ts
-// (sendComplaintReply) pentru pasul de trimitere efectiva.
+// panou si le aproba/editeaza manual inainte de trimitere.
 
 type ComplaintAnalysis = {
   summary: string;
@@ -23,7 +28,7 @@ Reguli stricte pentru "suggested_reply":
 - NU promite niciodata rambursari, compensatii, reduceri, concedieri de personal sau orice actiune concreta pe care restaurantul nu te-a autorizat explicit sa o promiti.
 - Recunoaste problema mentionata explicit in mesaj, cu empatie reala, nu formule generice de tip "va multumim pentru feedback".
 - Suna ca un proprietar care chiar a citit mesajul, nu ca un raspuns automat.
-- Maxim 4-5 propozitii scurte.
+- Maxim 4-5 propozitii scurte, in romana.
 - Nu semna cu niciun nume -- restaurantul adauga semnatura separat.
 
 Reguli pentru "sensitive" -- seteaza true daca mesajul mentioneaza ORICARE din:
@@ -35,35 +40,37 @@ Reguli pentru "sensitive" -- seteaza true daca mesajul mentioneaza ORICARE din:
 Cand esti nesigur, seteaza sensitive true -- e mai sigur sa marchezi in plus un caz obisnuit decat sa ratezi unul important.`;
 
 export async function analyzeComplaint(message: string): Promise<ComplaintAnalysis | null> {
-  const apiKey = process.env.ANTHROPIC_API_KEY;
+  const apiKey = process.env.GROQ_API_KEY;
   if (!apiKey) {
-    console.error("ANTHROPIC_API_KEY lipseste -- analiza AI e sarita, reclamatia se salveaza oricum.");
+    console.error("GROQ_API_KEY lipseste -- analiza AI e sarita, reclamatia se salveaza oricum.");
     return null;
   }
 
   try {
-    const res = await fetch("https://api.anthropic.com/v1/messages", {
+    const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "x-api-key": apiKey,
-        "anthropic-version": "2023-06-01",
+        Authorization: `Bearer ${apiKey}`,
       },
       body: JSON.stringify({
-        model: "claude-sonnet-4-6",
+        model: "openai/gpt-oss-120b",
+        response_format: { type: "json_object" },
         max_tokens: 500,
-        system: SYSTEM_PROMPT,
-        messages: [{ role: "user", content: message }],
+        messages: [
+          { role: "system", content: SYSTEM_PROMPT },
+          { role: "user", content: message },
+        ],
       }),
     });
 
     if (!res.ok) {
-      console.error("Anthropic API a raspuns cu eroare:", res.status, await res.text());
+      console.error("Groq API a raspuns cu eroare:", res.status, await res.text());
       return null;
     }
 
     const data = await res.json();
-    const rawText: string = data?.content?.find((b: { type: string }) => b.type === "text")?.text ?? "";
+    const rawText: string = data?.choices?.[0]?.message?.content ?? "";
     const cleaned = rawText.replace(/```json|```/g, "").trim();
     const parsed = JSON.parse(cleaned);
 

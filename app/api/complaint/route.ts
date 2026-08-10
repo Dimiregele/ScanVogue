@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase";
 import { resend } from "@/lib/resend";
-import { analyzeComplaint } from "@/lib/anthropic";
+import { analyzeComplaint } from "@/lib/complaint-ai";
 
 export async function POST(req: Request) {
   try {
