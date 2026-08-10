@@ -189,7 +189,8 @@ type View = "initial" | "negative-form" | "thanks-negative" | "redirecting";
 export default function ScanClient({ restaurant, scanId }: { restaurant: Restaurant; scanId: string | null }) {
   const [view, setView] = useState<View>("initial");
   const [message, setMessage] = useState("");
-  const [contact, setContact] = useState("");
+  const [contactName, setContactName] = useState("");
+  const [contactEmail, setContactEmail] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
   const handlePositive = () => {
@@ -212,7 +213,8 @@ export default function ScanClient({ restaurant, scanId }: { restaurant: Restaur
         body: JSON.stringify({
           restaurantId: restaurant.id,
           message,
-          contact,
+          contactName,
+          contactEmail,
         }),
       });
       if (!res.ok) throw new Error("Trimiterea a esuat");
@@ -295,9 +297,17 @@ export default function ScanClient({ restaurant, scanId }: { restaurant: Restaur
                   style={{ width: "100%", background: COLORS.inputBg, border: `1px solid ${COLORS.inputBorder}`, borderRadius: 12, padding: 14, color: COLORS.textPrimary, fontSize: 14, marginBottom: 12, resize: "none", fontFamily: "inherit", boxSizing: "border-box" }}
                 />
                 <input
-                  value={contact}
-                  onChange={(e) => setContact(e.target.value)}
-                  placeholder="Nume / Telefon / Email (opțional)"
+                  value={contactName}
+                  onChange={(e) => setContactName(e.target.value)}
+                  placeholder="Nume (opțional)"
+                  className="onyx-input onyx-fade-3"
+                  style={{ width: "100%", background: COLORS.inputBg, border: `1px solid ${COLORS.inputBorder}`, borderRadius: 12, padding: 14, color: COLORS.textPrimary, fontSize: 14, marginBottom: 10, fontFamily: "inherit", boxSizing: "border-box" }}
+                />
+                <input
+                  type="email"
+                  value={contactEmail}
+                  onChange={(e) => setContactEmail(e.target.value)}
+                  placeholder="Email (opțional, ca să-ți putem răspunde)"
                   className="onyx-input onyx-fade-3"
                   style={{ width: "100%", background: COLORS.inputBg, border: `1px solid ${COLORS.inputBorder}`, borderRadius: 12, padding: 14, color: COLORS.textPrimary, fontSize: 14, marginBottom: 20, fontFamily: "inherit", boxSizing: "border-box" }}
                 />

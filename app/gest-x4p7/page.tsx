@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import { getServerClient } from "@/lib/supabase-server";
 import { signOutOwner } from "./actions";
-import ComplaintStatusButton from "./complaint-status-button";
+import ComplaintCard from "./complaint-card";
 import GoogleUrlSetting from "./google-url-setting";
 import ScanAnalytics from "./scan-analytics";
 import ExportComplaintsButton from "./export-complaints-button";
@@ -56,7 +56,7 @@ export default async function OwnerPanel() {
       supabase.from("complaints").select("*", { count: "exact", head: true }).eq("restaurant_id", restaurant.id).eq("status", "new"),
       supabase
         .from("complaints")
-        .select("id, message, contact_name, contact_phone, contact_email, status, created_at")
+        .select("id, message, contact_name, contact_phone, contact_email, status, created_at, ai_summary, ai_suggested_reply, ai_sensitive, reply_sent_at")
         .eq("restaurant_id", restaurant.id)
         .order("created_at", { ascending: false })
         .limit(50),
@@ -189,18 +189,7 @@ export default async function OwnerPanel() {
           ) : (
             <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
               {visibleComplaints.map((c) => (
-                <div key={c.id} className="admin-row" style={complaintRowStyle}>
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 10 }}>
-                    <p style={{ color: ADMIN_COLORS.textPrimary, fontSize: 14, lineHeight: 1.5, margin: 0, flex: 1 }}>{c.message}</p>
-                    <ComplaintStatusButton complaintId={c.id} status={c.status} />
-                  </div>
-                  <div style={{ color: ADMIN_COLORS.textMuted, fontSize: 12, marginTop: 8 }}>
-                    {new Date(c.created_at).toLocaleString("ro-RO", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}
-                    {c.contact_name && <> · contact: {c.contact_name}</>}
-                    {c.contact_phone && <> · {c.contact_phone}</>}
-                    {c.contact_email && <> · {c.contact_email}</>}
-                  </div>
-                </div>
+                <ComplaintCard key={c.id} complaint={c} />
               ))}
             </div>
           )}
@@ -265,10 +254,4 @@ const linkButtonStyle: React.CSSProperties = {
   padding: "7px 14px",
   borderRadius: 999,
   cursor: "pointer",
-};
-
-const complaintRowStyle: React.CSSProperties = {
-  padding: 14,
-  background: "rgba(255,255,255,0.02)",
-  borderRadius: 12,
 };

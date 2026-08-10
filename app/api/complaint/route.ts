@@ -1,10 +1,11 @@
 import { NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase";
 import { resend } from "@/lib/resend";
+import { analyzeComplaint } from "@/lib/anthropic";
 
 export async function POST(req: Request) {
   try {
-    const { restaurantId, message, contact } = await req.json();
+    const { restaurantId, message, contactName, contactEmail } = await req.json();
 
     if (!restaurantId || typeof message !== "string" || !message.trim()) {
       return NextResponse.json({ error: "Date lipsa" }, { status: 400 });
@@ -15,12 +16,29 @@ export async function POST(req: Request) {
       .insert({
         restaurant_id: restaurantId,
         message: message.trim(),
-        contact_name: contact?.trim() || null,
+        contact_name: contactName?.trim() || null,
+        contact_email: contactEmail?.trim() || null,
       })
       .select("id")
       .single();
 
     if (dbError) throw dbError;
+
+    // Analiza AI -- rezumat + sugestie de raspuns pentru proprietar. Nu se
+    // trimite nimic automat catre client; doar populeaza campurile pe care
+    // proprietarul le vede si le aproba/editeaza in panou. Daca esueaza
+    // (cheie lipsa, eroare API), reclamatia tot s-a salvat normal mai sus.
+    const analysis = await analyzeComplaint(message.trim());
+    if (analysis) {
+      await supabaseAdmin
+        .from("complaints")
+        .update({
+          ai_summary: analysis.summary,
+          ai_suggested_reply: analysis.suggestedReply,
+          ai_sensitive: analysis.sensitive,
+        })
+        .eq("id", complaint.id);
+    }
 
     const { data: restaurant, error: restError } = await supabaseAdmin
       .from("restaurants")
@@ -37,14 +55,16 @@ export async function POST(req: Request) {
       const { data: emailData, error: emailError } = await resend.emails.send({
         from: process.env.RESEND_FROM_EMAIL || "feedback@resend.dev",
         to: restaurant.alert_email,
-        subject: `Reclamație nouă — ${restaurant.name}`,
+        subject: `Reclamație nouă — ${restaurant.name}${analysis ? `: ${analysis.summary}` : ""}`,
         text: [
           `Ai primit o reclamație nouă prin formularul de feedback.`,
           ``,
           `Mesaj:`,
           message.trim(),
           ``,
-          `Contact lăsat de client: ${contact?.trim() || "(nu a lăsat date de contact)"}`,
+          `Contact lăsat de client: ${contactName?.trim() || "(nume nespecificat)"}${contactEmail?.trim() ? `, ${contactEmail.trim()}` : " (fără email)"}`,
+          ``,
+          `Vezi rezumatul AI și un răspuns sugerat direct în panou: /gest-x4p7`,
         ].join("\n"),
       });
 
