@@ -52,20 +52,42 @@ export async function POST(req: Request) {
     }
 
     try {
+      const emailLines = [
+        `Ai primit o reclamație nouă prin formularul de feedback.`,
+        ``,
+        `Mesaj client:`,
+        message.trim(),
+        ``,
+        `Contact lăsat de client: ${contactName?.trim() || "(nume nespecificat)"}${contactEmail?.trim() ? `, ${contactEmail.trim()}` : " (fără email)"}`,
+      ];
+
+      if (analysis?.sensitive) {
+        emailLines.push(
+          ``,
+          `⚠️ ATENȚIE — acest mesaj a fost marcat ca posibil sensibil (sănătate, amenințare legală, discriminare sau altceva ce depășește o scuză simplă). Citește cu atenție înainte să folosești sugestia de mai jos.`
+        );
+      }
+
+      if (analysis?.suggestedReply) {
+        emailLines.push(
+          ``,
+          `— — —`,
+          `Răspuns sugerat de AI (verifică înainte să-l trimiți, poate fi editat):`,
+          ``,
+          analysis.suggestedReply
+        );
+      }
+
+      emailLines.push(
+        ``,
+        `Pentru a trimite efectiv acest răspuns către client, a marca reclamația ca rezolvată, sau a vedea teme recurente din ultimele luni: /gest-x4p7`
+      );
+
       const { data: emailData, error: emailError } = await resend.emails.send({
         from: process.env.RESEND_FROM_EMAIL || "feedback@resend.dev",
         to: restaurant.alert_email,
         subject: `Reclamație nouă — ${restaurant.name}${analysis ? `: ${analysis.summary}` : ""}`,
-        text: [
-          `Ai primit o reclamație nouă prin formularul de feedback.`,
-          ``,
-          `Mesaj:`,
-          message.trim(),
-          ``,
-          `Contact lăsat de client: ${contactName?.trim() || "(nume nespecificat)"}${contactEmail?.trim() ? `, ${contactEmail.trim()}` : " (fără email)"}`,
-          ``,
-          `Vezi rezumatul AI și un răspuns sugerat direct în panou: /gest-x4p7`,
-        ].join("\n"),
+        text: emailLines.join("\n"),
       });
 
       if (emailError) {
