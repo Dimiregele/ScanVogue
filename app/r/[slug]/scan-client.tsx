@@ -46,6 +46,20 @@ const GLOBAL_CSS = `
 .onyx-link:hover { color: ${COLORS.gold} !important; }
 
 .onyx-corner { animation: cornerGlow 3.5s ease-in-out infinite; }
+
+/* Centrare corecta pe mobil, inclusiv telefoane Samsung mai vechi (fara suport
+   pentru "dvh") si iPhone-uri mari (cu notch/safe-area). 100vh e scris primul
+   ca fallback -- browserele care nu inteleg "dvh" il ignora si raman cu 100vh,
+   in loc sa ramana fara nicio inaltime minima (ceea ce rupea centrarea). */
+.onyx-viewport {
+  min-height: 100vh;
+  min-height: 100dvh;
+  padding: 24px;
+  padding-top: max(24px, env(safe-area-inset-top));
+  padding-bottom: max(24px, env(safe-area-inset-bottom));
+  padding-left: max(24px, env(safe-area-inset-left));
+  padding-right: max(24px, env(safe-area-inset-right));
+}
 `;
 
 type Restaurant = {
@@ -229,13 +243,12 @@ export default function ScanClient({ restaurant, scanId }: { restaurant: Restaur
 
   return (
     <div
+      className="onyx-viewport"
       style={{
-        minHeight: "100dvh",
         width: "100%",
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        padding: 24,
         position: "relative",
         overflow: "hidden",
         background: `radial-gradient(ellipse at 50% 0%, ${COLORS.bgRadial} 0%, ${COLORS.bg} 65%)`,
@@ -294,12 +307,32 @@ export default function ScanClient({ restaurant, scanId }: { restaurant: Restaur
                   placeholder="Ce nu a fost pe placul tău?"
                   rows={4}
                   className="onyx-input onyx-fade-2"
-                  style={{ width: "100%", background: COLORS.inputBg, border: `1px solid ${COLORS.inputBorder}`, borderRadius: 12, padding: 14, color: COLORS.textPrimary, fontSize: 14, marginBottom: 12, resize: "none", fontFamily: "inherit", boxSizing: "border-box" }}
+                  style={{ width: "100%", background: COLORS.inputBg, border: `1px solid ${COLORS.inputBorder}`, borderRadius: 12, padding: 14, color: COLORS.textPrimary, fontSize: 14, marginBottom: 18, resize: "none", fontFamily: "inherit", boxSizing: "border-box" }}
                 />
+
+                <div
+                  className="onyx-fade-3"
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 10,
+                    marginBottom: 14,
+                  }}
+                >
+                  <div style={{ flex: 1, height: 1, background: "rgba(255,255,255,0.08)" }} />
+                  <span style={{ fontSize: 10.5, letterSpacing: "0.18em", color: COLORS.gold, textTransform: "uppercase", whiteSpace: "nowrap" }}>
+                    Ca să primești un răspuns
+                  </span>
+                  <div style={{ flex: 1, height: 1, background: "rgba(255,255,255,0.08)" }} />
+                </div>
+                <p className="onyx-fade-3" style={{ textAlign: "center", color: COLORS.textMuted, fontSize: 12.5, marginBottom: 14, lineHeight: 1.5 }}>
+                  Lasă-ne un contact ca să te putem suna sau scrie personal și să îndreptăm lucrurile.
+                </p>
+
                 <input
                   value={contactName}
                   onChange={(e) => setContactName(e.target.value)}
-                  placeholder="Nume (opțional)"
+                  placeholder="Nume"
                   className="onyx-input onyx-fade-3"
                   style={{ width: "100%", background: COLORS.inputBg, border: `1px solid ${COLORS.inputBorder}`, borderRadius: 12, padding: 14, color: COLORS.textPrimary, fontSize: 14, marginBottom: 10, fontFamily: "inherit", boxSizing: "border-box" }}
                 />
@@ -307,7 +340,7 @@ export default function ScanClient({ restaurant, scanId }: { restaurant: Restaur
                   type="email"
                   value={contactEmail}
                   onChange={(e) => setContactEmail(e.target.value)}
-                  placeholder="Email (opțional, ca să-ți putem răspunde)"
+                  placeholder="Email — primești răspunsul nostru aici"
                   className="onyx-input onyx-fade-3"
                   style={{ width: "100%", background: COLORS.inputBg, border: `1px solid ${COLORS.inputBorder}`, borderRadius: 12, padding: 14, color: COLORS.textPrimary, fontSize: 14, marginBottom: 20, fontFamily: "inherit", boxSizing: "border-box" }}
                 />
@@ -317,6 +350,13 @@ export default function ScanClient({ restaurant, scanId }: { restaurant: Restaur
                     {submitting ? "Se trimite..." : "Trimite"}
                   </PrimaryButton>
                 </div>
+                <p className="onyx-fade-4" style={{ textAlign: "center", color: COLORS.textMuted, fontSize: 11, marginTop: 14, lineHeight: 1.5 }}>
+                  Prin trimitere ești de acord cu prelucrarea datelor conform{" "}
+                  <a href="/confidentialitate" target="_blank" rel="noopener noreferrer" className="onyx-link" style={{ color: COLORS.textMuted, textDecoration: "underline" }}>
+                    Politicii de Confidențialitate
+                  </a>
+                  .
+                </p>
               </form>
             )}
 
@@ -327,7 +367,7 @@ export default function ScanClient({ restaurant, scanId }: { restaurant: Restaur
                   Mulțumim, mesajul tău a ajuns la echipa noastră!
                 </p>
                 <p className="onyx-fade-2" style={{ color: COLORS.textMuted, fontSize: 13.5, marginBottom: 26, lineHeight: 1.5 }}>
-                  Cineva din echipă te va contacta dacă ai lăsat datele tale de contact.
+                  Dacă ai lăsat un contact, cineva din echipă îți va răspunde personal în cel mai scurt timp.
                 </p>
                 <div className="onyx-fade-3">
                   <a
