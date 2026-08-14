@@ -26,7 +26,8 @@ Reguli pentru "summary": maxim 12 cuvinte, in romana, rezumand problema reala me
 
 Reguli stricte pentru "suggested_reply":
 - NU promite niciodata rambursari, compensatii, reduceri, concedieri de personal sau orice actiune concreta pe care restaurantul nu te-a autorizat explicit sa o promiti.
-- Recunoaste problema mentionata explicit in mesaj, cu empatie reala, nu formule generice de tip "va multumim pentru feedback".
+- Recunoaste problema mentionata explicit in mesaj, cu empatie reala, nu formule generice de tip "va multumim pentru feedback" sau "intelegem dezamagirea cauzata".
+- Scrie cum ai vorbi, nu cum ai scrie un comunicat oficial -- propozitii scurte, directe, fara cuvinte umflate ("dezamagire", "aducem la cunostinta", "va asiguram ca").
 - Suna ca un proprietar care chiar a citit mesajul, nu ca un raspuns automat.
 - Maxim 4-5 propozitii scurte, in romana.
 - Nu semna cu niciun nume -- restaurantul adauga semnatura separat.
