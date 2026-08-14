@@ -4,6 +4,7 @@ import { getServerClient } from "@/lib/supabase-server";
 import { createRestaurant, signOut } from "./actions";
 import ToggleActiveButton from "./toggle-active-button";
 import ClearScansButton from "./clear-scans-button";
+import ClearAllButton from "./clear-all-button";
 import { ADMIN_COLORS, ADMIN_GLOBAL_CSS, AdminEmbers, adminSectionTitleStyle } from "../_shared/decor";
 import AnimatedNumber from "../_shared/animated-number";
 
@@ -42,14 +43,16 @@ export default async function AdminHome() {
     .order("created_at", { ascending: false });
 
   const scanCounts = new Map<string, number>();
+  const complaintCounts = new Map<string, number>();
   if (restaurants && restaurants.length > 0) {
     await Promise.all(
       restaurants.map(async (r) => {
-        const { count } = await supabase
-          .from("scans")
-          .select("*", { count: "exact", head: true })
-          .eq("restaurant_id", r.id);
-        scanCounts.set(r.id, count ?? 0);
+        const [{ count: scanCount }, { count: complaintCount }] = await Promise.all([
+          supabase.from("scans").select("*", { count: "exact", head: true }).eq("restaurant_id", r.id),
+          supabase.from("complaints").select("*", { count: "exact", head: true }).eq("restaurant_id", r.id),
+        ]);
+        scanCounts.set(r.id, scanCount ?? 0);
+        complaintCounts.set(r.id, complaintCount ?? 0);
       })
     );
   }
@@ -149,6 +152,12 @@ export default async function AdminHome() {
                       restaurantId={r.id}
                       name={r.name}
                       scanCount={scanCounts.get(r.id) ?? 0}
+                    />
+                    <ClearAllButton
+                      restaurantId={r.id}
+                      name={r.name}
+                      scanCount={scanCounts.get(r.id) ?? 0}
+                      complaintCount={complaintCounts.get(r.id) ?? 0}
                     />
                   </div>
                 </div>
