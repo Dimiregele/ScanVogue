@@ -97,6 +97,21 @@ export async function clearRestaurantScans(restaurantId: string) {
   redirect("/admin-x7k2");
 }
 
+// Reseteaza COMPLET un restaurant la starea "cont nou" -- sterge atat
+// scanarile cat si reclamatiile. Folosit inainte sa predai un cont unui
+// client real, ca sa nu vada date de test/demo. Ireversibil.
+export async function clearRestaurantEverything(restaurantId: string) {
+  const supabase = await getServerClient();
+
+  const { error: scansError } = await supabase.from("scans").delete().eq("restaurant_id", restaurantId);
+  if (scansError) throw scansError;
+
+  const { error: complaintsError } = await supabase.from("complaints").delete().eq("restaurant_id", restaurantId);
+  if (complaintsError) throw complaintsError;
+
+  redirect("/admin-x7k2");
+}
+
 export async function signOut() {
   const supabase = await getServerClient();
   await supabase.auth.signOut();
