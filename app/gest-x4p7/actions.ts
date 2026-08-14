@@ -53,7 +53,7 @@ export async function sendComplaintReply(complaintId: string, replyText: string)
     .single();
 
   const { resend } = await import("@/lib/resend");
-  const { wrapEmailHtml, restaurantHeaderHtml, paragraphHtml, signatureHtml } = await import("@/lib/email-html");
+  const { wrapEmailHtml, paragraphHtml, signatureHtml } = await import("@/lib/email-html");
 
   // Nume cu litera mare la inceput -- daca proprietarul/clientul l-a scris
   // cu litere mici (ex. la testare), tot arata ingrijit in email.
@@ -65,8 +65,7 @@ export async function sendComplaintReply(complaintId: string, replyText: string)
 
   const html = wrapEmailHtml(
     [
-      restaurantHeaderHtml(restaurantName),
-      paragraphHtml(displayName ? `Bună, ${displayName},` : "Bună,"),
+      paragraphHtml(displayName ? `Bună ${displayName},` : "Bună,"),
       paragraphHtml(trimmed),
       signatureHtml(restaurantName),
     ].join("\n")
@@ -77,7 +76,7 @@ export async function sendComplaintReply(complaintId: string, replyText: string)
     to: complaint.contact_email,
     subject: `Am citit mesajul tău — ${restaurantName}`,
     text: [
-      displayName ? `Bună, ${displayName},` : "Bună,",
+      displayName ? `Bună ${displayName},` : "Bună,",
       "",
       trimmed,
       "",
