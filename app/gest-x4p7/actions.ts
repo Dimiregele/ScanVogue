@@ -48,7 +48,7 @@ export async function sendComplaintReply(complaintId: string, replyText: string)
 
   const { data: restaurant } = await supabase
     .from("restaurants")
-    .select("name")
+    .select("name, alert_email")
     .eq("id", complaint.restaurant_id)
     .single();
 
@@ -63,6 +63,13 @@ export async function sendComplaintReply(complaintId: string, replyText: string)
 
   const restaurantName = restaurant?.name ?? "restaurant";
 
+  // Extragem doar adresa (fara nume) din RESEND_FROM_EMAIL, ca sa punem
+  // numele restaurantului in loc de "ScanVogue" -- clientul vede numele
+  // restaurantului in inbox, nu al platformei. Adresa tehnica ramane
+  // aceeasi (singura verificata la Resend), doar eticheta se schimba.
+  const fromAddressMatch = (process.env.RESEND_FROM_EMAIL || "feedback@resend.dev").match(/<(.+)>/);
+  const fromAddress = fromAddressMatch ? fromAddressMatch[1] : (process.env.RESEND_FROM_EMAIL || "feedback@resend.dev");
+
   const html = wrapEmailHtml(
     [
       paragraphHtml(displayName ? `Bună ${displayName},` : "Bună,"),
@@ -72,8 +79,9 @@ export async function sendComplaintReply(complaintId: string, replyText: string)
   );
 
   const { error: emailError } = await resend.emails.send({
-    from: process.env.RESEND_FROM_EMAIL || "feedback@resend.dev",
+    from: `${restaurantName} <${fromAddress}>`,
     to: complaint.contact_email,
+    replyTo: restaurant?.alert_email || undefined,
     subject: `Am citit mesajul tău — ${restaurantName}`,
     text: [
       displayName ? `Bună ${displayName},` : "Bună,",
