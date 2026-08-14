@@ -1,4 +1,6 @@
 
+
+R slug page · TSX
 import { notFound } from "next/navigation";
 import { supabaseAdmin } from "@/lib/supabase";
 import ScanClient from "./scan-client";
