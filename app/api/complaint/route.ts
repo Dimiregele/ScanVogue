@@ -2,6 +2,16 @@ import { NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase";
 import { resend } from "@/lib/resend";
 import { analyzeComplaint } from "@/lib/complaint-ai";
+import {
+  wrapEmailHtml,
+  restaurantHeaderHtml,
+  paragraphHtml,
+  mutedTextHtml,
+  warningBoxHtml,
+  quoteBoxHtml,
+  aiReplyBoxHtml,
+  ctaButtonHtml,
+} from "@/lib/email-html";
 
 export async function POST(req: Request) {
   try {
@@ -83,11 +93,37 @@ export async function POST(req: Request) {
         `Pentru a trimite efectiv acest răspuns către client, a marca reclamația ca rezolvată, sau a vedea teme recurente din ultimele luni: /gest-x4p7`
       );
 
+      const contactLine = `Contact lăsat de client: ${contactName?.trim() || "(nume nespecificat)"}${contactEmail?.trim() ? `, ${contactEmail.trim()}` : " (fără email)"}`;
+
+      const htmlSections = [
+        restaurantHeaderHtml(restaurant.name),
+        mutedTextHtml("Ai primit o reclamație nouă prin formularul de feedback."),
+      ];
+
+      if (analysis?.sensitive) {
+        htmlSections.push(
+          warningBoxHtml(
+            "ATENȚIE — acest mesaj a fost marcat ca posibil sensibil (sănătate, amenințare legală, discriminare sau altceva ce depășește o scuză simplă). Citește cu atenție înainte să folosești sugestia de mai jos."
+          )
+        );
+      }
+
+      htmlSections.push(quoteBoxHtml(message.trim()), mutedTextHtml(contactLine));
+
+      if (analysis?.suggestedReply) {
+        htmlSections.push(aiReplyBoxHtml(analysis.suggestedReply));
+      }
+
+      htmlSections.push(ctaButtonHtml("Deschide panoul", "https://scanvogue.ro/gest-x4p7"));
+
+      const html = wrapEmailHtml(htmlSections.join("\n"));
+
       const { data: emailData, error: emailError } = await resend.emails.send({
         from: process.env.RESEND_FROM_EMAIL || "feedback@resend.dev",
         to: restaurant.alert_email,
         subject: `Reclamație nouă — ${restaurant.name}${analysis ? `: ${analysis.summary}` : ""}`,
         text: emailLines.join("\n"),
+        html,
       });
 
       if (emailError) {
