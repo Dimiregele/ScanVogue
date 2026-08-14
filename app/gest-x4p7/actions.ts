@@ -53,6 +53,7 @@ export async function sendComplaintReply(complaintId: string, replyText: string)
     .single();
 
   const { resend } = await import("@/lib/resend");
+  const { wrapEmailHtml, restaurantHeaderHtml, paragraphHtml, signatureHtml } = await import("@/lib/email-html");
 
   // Nume cu litera mare la inceput -- daca proprietarul/clientul l-a scris
   // cu litere mici (ex. la testare), tot arata ingrijit in email.
@@ -60,17 +61,29 @@ export async function sendComplaintReply(complaintId: string, replyText: string)
     ? complaint.contact_name.trim().replace(/^\p{L}/u, (c) => c.toLocaleUpperCase("ro-RO"))
     : null;
 
+  const restaurantName = restaurant?.name ?? "restaurant";
+
+  const html = wrapEmailHtml(
+    [
+      restaurantHeaderHtml(restaurantName),
+      paragraphHtml(displayName ? `Bună, ${displayName},` : "Bună,"),
+      paragraphHtml(trimmed),
+      signatureHtml(restaurantName),
+    ].join("\n")
+  );
+
   const { error: emailError } = await resend.emails.send({
     from: process.env.RESEND_FROM_EMAIL || "feedback@resend.dev",
     to: complaint.contact_email,
-    subject: `Am citit mesajul tău — ${restaurant?.name ?? "restaurant"}`,
+    subject: `Am citit mesajul tău — ${restaurantName}`,
     text: [
       displayName ? `Bună, ${displayName},` : "Bună,",
       "",
       trimmed,
       "",
-      `— ${restaurant?.name ?? "Echipa"}`,
+      `— ${restaurantName}`,
     ].join("\n"),
+    html,
   });
 
   if (emailError) throw new Error("Trimiterea a eșuat: " + emailError.message);
