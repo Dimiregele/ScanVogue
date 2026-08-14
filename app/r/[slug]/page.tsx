@@ -1,34 +1,31 @@
-
-
-R slug page · TSX
 import { notFound } from "next/navigation";
 import { supabaseAdmin } from "@/lib/supabase";
 import ScanClient from "./scan-client";
- 
+
 // Pagina trebuie sa fie mereu proaspata -- niciodata nu cache-uim starea
 // is_active sau datele restaurantului static la build time.
 export const dynamic = "force-dynamic";
- 
+
 export default async function ScanPage({
   params,
 }: {
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
- 
+
   const { data: restaurant, error } = await supabaseAdmin
     .from("restaurants")
     .select("id, name, subtitle, logo_url, google_review_url, is_active")
     .eq("slug", slug)
     .single();
- 
+
   // Slug inexistent -> 404 normal (nu exista asa un restaurant)
   if (error || !restaurant) {
     console.error("DEBUG - eroare la cautarea restaurantului:", JSON.stringify(error, null, 2));
     console.error("DEBUG - slug cautat:", slug);
     notFound();
   }
- 
+
   // Abonament neplatit / cont dezactivat de super-admin -> mesaj neutru,
   // NU eroare tehnica. Clientul din restaurant nu trebuie sa vada niciodata
   // un ecran de "eroare" -- pare neprofesionist si ridica intrebari.
@@ -57,7 +54,7 @@ export default async function ScanPage({
       </>
     );
   }
- 
+
   // Inregistram scanarea imediat, cu choice = null (inseamna "a scanat, nu a
   // ales inca"). Salvam id-ul randului si-l pasam catre client -- cand
   // utilizatorul apasa un buton, facem UPDATE pe acelasi rand (nu insert nou),
@@ -67,13 +64,13 @@ export default async function ScanPage({
     .insert({ restaurant_id: restaurant.id, choice: null })
     .select("id")
     .single();
- 
+
   if (scanError) {
     // Nu blocam experienta clientului daca logarea scanarii esueaza --
     // mai bine pierdem un rand de analytics decat sa aratam eroare.
     console.error("Nu am putut inregistra scanarea:", scanError);
   }
- 
+
   return (
     <ScanClient
       restaurant={{
@@ -87,4 +84,3 @@ export default async function ScanPage({
     />
   );
 }
- 
