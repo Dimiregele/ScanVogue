@@ -53,12 +53,19 @@ export async function sendComplaintReply(complaintId: string, replyText: string)
     .single();
 
   const { resend } = await import("@/lib/resend");
+
+  // Nume cu litera mare la inceput -- daca proprietarul/clientul l-a scris
+  // cu litere mici (ex. la testare), tot arata ingrijit in email.
+  const displayName = complaint.contact_name
+    ? complaint.contact_name.trim().replace(/^\p{L}/u, (c) => c.toLocaleUpperCase("ro-RO"))
+    : null;
+
   const { error: emailError } = await resend.emails.send({
     from: process.env.RESEND_FROM_EMAIL || "feedback@resend.dev",
     to: complaint.contact_email,
-    subject: `Răspuns de la ${restaurant?.name ?? "restaurant"}`,
+    subject: `Am citit mesajul tău — ${restaurant?.name ?? "restaurant"}`,
     text: [
-      complaint.contact_name ? `Bună, ${complaint.contact_name},` : "Bună,",
+      displayName ? `Bună, ${displayName},` : "Bună,",
       "",
       trimmed,
       "",
