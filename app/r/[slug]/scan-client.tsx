@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { Star, Send, ArrowUpRight, Loader2 } from "lucide-react";
+import { Star, Send, ArrowUpRight, Loader2, MessageCircle } from "lucide-react";
 
 const COLORS = {
   bg: "#0B0A08",
@@ -189,6 +189,51 @@ function SecondaryButton({ onClick, children }: { onClick?: () => void; children
   );
 }
 
+// Folosit pentru cele doua optiuni de pe ecranul initial (Google / mesaj privat).
+// Design deliberat: ACEEASI greutate vizuala pentru amandoua -- nici o varianta
+// nu arata mai "principala" decat cealalta. Politica Google interzice explicit
+// filtrarea clientilor dupa cat de multumiti sunt (a arata Google doar celor
+// multumiti, sau a face vizibil mai atragatoare calea privata) -- vezi
+// "review gating" in politica lor de continut. Ambele optiuni trebuie sa fie
+// la fel de usor de ales, pentru oricine, indiferent de experienta avuta.
+function ChoiceButton({
+  onClick,
+  icon,
+  children,
+  arrow,
+}: {
+  onClick?: () => void;
+  icon: React.ReactNode;
+  children: React.ReactNode;
+  arrow?: boolean;
+}) {
+  return (
+    <button
+      onClick={onClick}
+      className="onyx-btn onyx-btn-secondary"
+      style={{
+        width: "100%",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        gap: 10,
+        background: "rgba(198,161,91,0.07)",
+        color: COLORS.textPrimary,
+        fontWeight: 600,
+        fontSize: 15,
+        borderRadius: 14,
+        padding: "16px 20px",
+        border: "1px solid rgba(198,161,91,0.35)",
+        cursor: "pointer",
+      }}
+    >
+      <span style={{ color: COLORS.gold, display: "flex", flexShrink: 0 }}>{icon}</span>
+      <span>{children}</span>
+      {arrow && <ArrowUpRight size={15} strokeWidth={2} style={{ color: COLORS.gold, flexShrink: 0 }} />}
+    </button>
+  );
+}
+
 function SuccessCheck() {
   return (
     <svg width="52" height="52" viewBox="0 0 52 52" style={{ margin: "0 auto 18px" }}>
@@ -275,18 +320,29 @@ export default function ScanClient({ restaurant, scanId }: { restaurant: Restaur
 
             {view === "initial" && (
               <div>
-                <p className="onyx-fade-2" style={{ textAlign: "center", color: COLORS.textPrimary, fontSize: 19, lineHeight: 1.4, marginBottom: 30, fontWeight: 500 }}>
-                  Cum a fost experiența ta astăzi la noi?
+                <p className="onyx-fade-2" style={{ textAlign: "center", color: COLORS.textMuted, fontSize: 14, lineHeight: 1.5, marginBottom: 26 }}>
+                  Spune-ne cum a fost — alege ce ți se potrivește.
                 </p>
-                <div className="onyx-fade-3" style={{ marginBottom: 12 }}>
-                  <PrimaryButton onClick={handlePositive} icon={<Star size={16} strokeWidth={2} fill="#100F0D" />}>
-                    Am avut o experiență plăcută
-                  </PrimaryButton>
+
+                <div className="onyx-fade-3">
+                  <ChoiceButton onClick={handlePositive} icon={<Star size={17} strokeWidth={2} />} arrow>
+                    Lasă o recenzie pe Google
+                  </ChoiceButton>
                 </div>
+
+                <div className="onyx-fade-3" style={{ display: "flex", alignItems: "center", gap: 10, margin: "18px 0" }}>
+                  <div style={{ flex: 1, height: 1, background: "rgba(255,255,255,0.08)" }} />
+                  <span style={{ fontSize: 11, letterSpacing: "0.14em", color: COLORS.textMuted, textTransform: "uppercase" }}>sau</span>
+                  <div style={{ flex: 1, height: 1, background: "rgba(255,255,255,0.08)" }} />
+                </div>
+
                 <div className="onyx-fade-4">
-                  <SecondaryButton onClick={() => setView("negative-form")}>
-                    Ceva nu a fost pe placul meu
-                  </SecondaryButton>
+                  <p style={{ textAlign: "center", color: COLORS.textMuted, fontSize: 12.5, marginBottom: 10, lineHeight: 1.5 }}>
+                    Ai avut o problemă și vrei să o rezolvăm imediat?
+                  </p>
+                  <ChoiceButton onClick={() => setView("negative-form")} icon={<MessageCircle size={17} strokeWidth={2} />}>
+                    Trimite un mesaj privat conducerii
+                  </ChoiceButton>
                 </div>
               </div>
             )}
