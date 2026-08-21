@@ -119,3 +119,39 @@ export function mutedTextHtml(text: string): string {
 export function signatureHtml(name: string): string {
   return `<p style="margin:0;font-family:${FONT};font-size:14px;line-height:22px;color:${COLORS.textMuted};">— ${escapeHtml(name)}</p>`;
 }
+
+export function themeListHtml(themes: { theme: string; count: number; timePattern: string | null; outcomeLabel?: string | null }[]): string {
+  const rows = themes
+    .map(
+      (t) => `<tr>
+<td style="padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.06);">
+<p style="margin:0;font-family:${FONT};font-size:14px;line-height:20px;color:${COLORS.textPrimary};font-weight:600;">${escapeHtml(t.theme)}</p>
+${t.timePattern ? `<p style="margin:2px 0 0 0;font-family:${FONT};font-size:12.5px;line-height:18px;color:${COLORS.gold};">${escapeHtml(t.timePattern)}</p>` : ""}
+${t.outcomeLabel ? `<p style="margin:2px 0 0 0;font-family:${FONT};font-size:12px;line-height:17px;color:${COLORS.textMuted};">${escapeHtml(t.outcomeLabel)}</p>` : ""}
+</td>
+<td style="padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.06);text-align:right;vertical-align:top;">
+<p style="margin:0;font-family:${FONT};font-size:14px;line-height:20px;color:${COLORS.textMuted};">${t.count}×</p>
+</td>
+</tr>`
+    )
+    .join("\n");
+
+  return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:0 0 22px 0;">
+${rows}
+</table>`;
+}
+
+export function statsRowHtml(items: { label: string; value: string }[]): string {
+  const cells = items
+    .map(
+      (it) => `<td align="center" style="padding:14px 8px;">
+<p style="margin:0 0 4px 0;font-family:${FONT_SERIF};font-size:22px;color:${COLORS.gold};">${escapeHtml(it.value)}</p>
+<p style="margin:0;font-family:${FONT};font-size:11px;letter-spacing:0.04em;color:${COLORS.textMuted};">${escapeHtml(it.label)}</p>
+</td>`
+    )
+    .join("\n");
+
+  return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="#1D1A15" style="background-color:#1D1A15;border-radius:10px;margin:0 0 22px 0;">
+<tr>${cells}</tr>
+</table>`;
+}
