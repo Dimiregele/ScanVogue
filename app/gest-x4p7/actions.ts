@@ -104,31 +104,27 @@ export async function sendComplaintReply(complaintId: string, replyText: string)
   revalidatePath("/gest-x4p7");
 }
 
-// Analiza AI peste toate reclamatiile (ultimele 90 de zile) ca sa gaseasca
-// probleme care se repeta -- nu se persista nicaieri, se calculeaza la
-// cerere cand proprietarul apasa butonul, ca sa nu platim un apel AI la
-// fiecare incarcare de pagina degeaba.
-export async function getRecurringThemes() {
-  const supabase = await getServerClient();
-  const ninetyDaysAgo = new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString();
+// Temele recurente nu se mai calculeaza la cerere (risc de suprasolicitare a
+// AI-ului daca cineva apasa butonul repetat) -- se calculeaza automat,
+// saptamanal, de un job programat (vezi app/api/weekly-themes/route.ts) si
+// se citesc direct din tabela theme_snapshots in app/gest-x4p7/page.tsx.
 
-  const { data: complaints, error } = await supabase
-    .from("complaints")
-    .select("message")
-    .gte("created_at", ninetyDaysAgo)
-    .order("created_at", { ascending: false })
-    .limit(100);
+// Proprietarul marcheaza o tema ca "rezolvata", cu o nota optionala despre
+// ce a facut. RLS (has_restaurant_access) verifica automat ca restaurantId
+// chiar apartine contului logat -- nu ne bazam doar pe ce trimite clientul.
+export async function markThemeResolved(restaurantId: string, theme: string, note: string) {
+  const trimmedTheme = theme.trim();
+  if (!trimmedTheme) throw new Error("Tema lipsește.");
+
+  const supabase = await getServerClient();
+  const { error } = await supabase.from("theme_resolutions").insert({
+    restaurant_id: restaurantId,
+    theme: trimmedTheme,
+    note: note.trim() || null,
+  });
 
   if (error) throw error;
-  if (!complaints || complaints.length < 3) {
-    return { themes: [], tooFew: true };
-  }
-
-  const { analyzeThemes } = await import("@/lib/complaint-ai");
-  const themes = await analyzeThemes(complaints.map((c) => c.message));
-
-  if (!themes) throw new Error("Analiza a eșuat — încearcă din nou în câteva secunde.");
-  return { themes, tooFew: false };
+  revalidatePath("/gest-x4p7");
 }
 
 // Doar linkul Google Reviews e editabil de proprietar. Adresa de alerta
