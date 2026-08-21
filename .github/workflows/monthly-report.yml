@@ -1,0 +1,31 @@
+name: Raport Lunar Restaurante
+
+# Trimite automat, in prima zi a fiecarei luni, un raport catre fiecare
+# restaurant activ: numar scanari, reclamatii, teme recurente si tendinta
+# fata de luna anterioara. Ruta e protejata printr-un secret (MONTHLY_REPORT_SECRET),
+# ca sa nu poata fi declansata de altcineva.
+
+on:
+  schedule:
+    # Ruleaza in ziua 1 a fiecarei luni, la 07:00 UTC (~09:00-10:00 ora Romaniei)
+    - cron: "0 7 1 * *"
+  workflow_dispatch: {}
+
+jobs:
+  trigger-monthly-report:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Declanseaza raportul lunar
+        run: |
+          STATUS=$(curl -s -o /tmp/response.json -w "%{http_code}" \
+            -X POST "https://scanvogue.ro/api/monthly-report" \
+            -H "x-report-secret: ${MONTHLY_REPORT_SECRET}")
+          echo "Status HTTP: $STATUS"
+          echo "Raspuns:"
+          cat /tmp/response.json
+          if [ "$STATUS" -ge 400 ]; then
+            echo "::error::Raportul lunar a esuat (status $STATUS)."
+            exit 1
+          fi
+        env:
+          MONTHLY_REPORT_SECRET: ${{ secrets.MONTHLY_REPORT_SECRET }}
