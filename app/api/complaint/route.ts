@@ -46,6 +46,7 @@ export async function POST(req: Request) {
           ai_summary: analysis.summary,
           ai_suggested_reply: analysis.suggestedReply,
           ai_sensitive: analysis.sensitive,
+          theme: analysis.theme,
         })
         .eq("id", complaint.id);
     }
