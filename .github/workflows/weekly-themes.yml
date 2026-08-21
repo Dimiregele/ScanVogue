@@ -1,0 +1,32 @@
+name: Teme Recurente Saptamanale
+
+# Calculeaza saptamanal temele recurente (din ultimele 30 de zile) pentru
+# fiecare restaurant activ, salveaza instantaneul in baza de date (vizibil
+# in panoul proprietarului) si trimite email doar daca au iesit teme clare.
+# Inlocuieste vechiul buton "Analizeaza temele" din dashboard, care apela AI
+# la fiecare click -- acum nu mai exista niciun apel AI declansat de user.
+
+on:
+  schedule:
+    # Ruleaza in fiecare luni la 06:30 UTC (~08:30-09:30 ora Romaniei)
+    - cron: "30 6 * * 1"
+  workflow_dispatch: {}
+
+jobs:
+  trigger-weekly-themes:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Declanseaza analiza saptamanala de teme
+        run: |
+          STATUS=$(curl -s -o /tmp/response.json -w "%{http_code}" \
+            -X POST "https://scanvogue.ro/api/weekly-themes" \
+            -H "x-report-secret: ${WEEKLY_THEMES_SECRET}")
+          echo "Status HTTP: $STATUS"
+          echo "Raspuns:"
+          cat /tmp/response.json
+          if [ "$STATUS" -ge 400 ]; then
+            echo "::error::Analiza saptamanala a esuat (status $STATUS)."
+            exit 1
+          fi
+        env:
+          WEEKLY_THEMES_SECRET: ${{ secrets.WEEKLY_THEMES_SECRET }}
