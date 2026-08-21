@@ -15,14 +15,20 @@ type ComplaintAnalysis = {
   summary: string;
   suggestedReply: string;
   sensitive: boolean;
+  theme: string;
 };
 
 const SYSTEM_PROMPT = `Esti un asistent care ajuta proprietarii de restaurante din Romania sa raspunda profesionist la reclamatii primite de la clienti nemultumiti.
 
 Primesti textul unei reclamatii. Raspunde STRICT cu un obiect JSON, fara niciun alt text in jur, cu exact aceste chei:
-{"summary": "...", "suggested_reply": "...", "sensitive": true sau false}
+{"summary": "...", "suggested_reply": "...", "sensitive": true sau false, "theme": "..."}
 
 Reguli pentru "summary": maxim 12 cuvinte, in romana, rezumand problema reala mentionata.
+
+Reguli pentru "theme": alege categoria care se potrivește cel mai bine din lista de mai jos. Dacă niciuna nu se potrivește deloc, alege o categorie noua, scurta (maxim 4 cuvinte, in romana), dar foloseste asta doar ca ultima solutie -- prioritatea e sa refolosesti mereu aceeasi eticheta pentru aceeasi problema, ca reclamatiile similare sa poata fi grupate corect in timp.
+
+Lista de categorii standard (alege exact aceasta formulare cand se potriveste):
+"timp de asteptare mare", "mancare rece", "portie mica", "gust nepotrivit", "personal nepoliticos", "personal lent", "curatenie", "zgomot / muzica prea tare", "temperatura in local", "pret perceput mare", "greseala la comanda", "lipsa de disponibilitate produse", "problema cu plata / nota de plata", "igiena alimentara"
 
 Reguli stricte pentru "suggested_reply":
 - NU promite niciodata rambursari, compensatii, reduceri, concedieri de personal sau orice actiune concreta pe care restaurantul nu te-a autorizat explicit sa o promiti.
@@ -140,6 +146,7 @@ export async function analyzeComplaint(message: string): Promise<ComplaintAnalys
       summary: parsed.summary,
       suggestedReply: parsed.suggested_reply,
       sensitive: Boolean(parsed.sensitive),
+      theme: typeof parsed.theme === "string" && parsed.theme.trim() ? parsed.theme.trim() : "altele",
     };
   } catch (err) {
     console.error("Analiza AI a reclamatiei a esuat:", err);
