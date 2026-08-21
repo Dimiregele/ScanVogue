@@ -49,7 +49,7 @@ export default async function OwnerPanel() {
     );
   }
 
-  const [{ count: totalScans }, { count: positiveScans }, { count: negativeScans }, { count: newComplaints }, { data: complaints }, { data: scans }] =
+  const [{ count: totalScans }, { count: positiveScans }, { count: negativeScans }, { count: newComplaints }, { data: complaints }, { data: scans }, { data: themeSnapshotRow }] =
     await Promise.all([
       supabase.from("scans").select("*", { count: "exact", head: true }).eq("restaurant_id", restaurant.id),
       supabase.from("scans").select("*", { count: "exact", head: true }).eq("restaurant_id", restaurant.id).eq("choice", "positive"),
@@ -67,7 +67,31 @@ export default async function OwnerPanel() {
         .eq("restaurant_id", restaurant.id)
         .order("created_at", { ascending: true })
         .limit(5000),
+      supabase
+        .from("theme_snapshots")
+        .select("computed_at, window_days, themes")
+        .eq("restaurant_id", restaurant.id)
+        .order("computed_at", { ascending: false })
+        .limit(1)
+        .maybeSingle(),
     ]);
+
+  // Temele recurente nu se mai calculeaza la cerere (apel AI la fiecare click) --
+  // citim doar ultimul instantaneu calculat automat, saptamanal, de job-ul
+  // programat. Pentru fiecare tema din instantaneu, verificam si daca exista
+  // un remediu marcat, ca sa aratam daca a functionat.
+  // IMPORTANT: formatam textul AICI, pe server, si trimitem catre client doar
+  // string-ul gata facut -- lib/theme-resolution.ts importa supabaseAdmin
+  // (cheia secreta), deci nu trebuie NICIODATA importat direct intr-o
+  // componenta "use client" (ar risca sa bage cheia in bundle-ul de browser).
+  const { getLatestResolutionOutcome, resolutionOutcomeLabel } = await import("@/lib/theme-resolution");
+  const snapshotThemes = (themeSnapshotRow?.themes as { theme: string; count: number; timePattern: string | null }[]) ?? [];
+  const themeOutcomeLabels = await Promise.all(
+    snapshotThemes.map(async (t) => {
+      const outcome = await getLatestResolutionOutcome(restaurant.id, t.theme);
+      return outcome ? resolutionOutcomeLabel(outcome) : null;
+    })
+  );
 
   // Rata de satisfactie ignora scanarile abandonate (fara alegere facuta),
   // ca sa nu dilueze artificial procentul cu oameni care n-au raspuns nimic.
@@ -173,7 +197,12 @@ export default async function OwnerPanel() {
           </p>
         </section>
 
-        <RecurringThemes />
+        <RecurringThemes
+          restaurantId={restaurant.id}
+          computedAt={themeSnapshotRow?.computed_at ?? null}
+          themes={snapshotThemes}
+          outcomeLabels={themeOutcomeLabels}
+        />
 
         <section className="admin-fade-5 admin-card" style={cardStyle}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", flexWrap: "wrap", gap: 8, marginBottom: 16 }}>
