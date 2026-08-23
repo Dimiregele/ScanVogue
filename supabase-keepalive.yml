@@ -1,0 +1,30 @@
+name: Supabase Keep-Alive
+
+# Proiectele Supabase de pe planul Free se pun automat pe pauza dupa 7 zile
+# fara activitate pe baza de date. Acest workflow trimite zilnic o cerere
+# reala catre API-ul Supabase (REST/PostgREST), ca proiectul sa ramana activ,
+# fara sa fie nevoie de un plan platit.
+
+on:
+  schedule:
+    # Ruleaza zilnic la 06:00 UTC (~08:00-09:00 ora Romaniei, in functie de ora de vara)
+    - cron: "0 6 * * *"
+  workflow_dispatch: {}
+
+jobs:
+  ping-supabase:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping Supabase REST API
+        run: |
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" \
+            "https://tkqdseeebubnswnpeeoy.supabase.co/rest/v1/restaurants?select=id&limit=1" \
+            -H "apikey: ${SUPABASE_ANON_KEY}" \
+            -H "Authorization: Bearer ${SUPABASE_ANON_KEY}")
+          echo "Supabase a raspuns cu status HTTP: $STATUS"
+          if [ "$STATUS" -ge 400 ]; then
+            echo "::error::Supabase a raspuns cu eroare ($STATUS)."
+            exit 1
+          fi
+        env:
+          SUPABASE_ANON_KEY: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRrcWRzZWVlYnVibnN3bnBlZW95Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUzOTM5NjIsImV4cCI6MjA5MDk2OTk2Mn0.lh6YfME74KsaYP6O3N2yxQNtCsEt45s0I1oWTZ8kaQo
