@@ -28,7 +28,7 @@ Reguli pentru "summary": maxim 12 cuvinte, in romana, rezumand problema reala me
 Reguli pentru "theme": alege categoria care se potrivește cel mai bine din lista de mai jos. Dacă niciuna nu se potrivește deloc, alege o categorie noua, scurta (maxim 4 cuvinte, in romana), dar foloseste asta doar ca ultima solutie -- prioritatea e sa refolosesti mereu aceeasi eticheta pentru aceeasi problema, ca reclamatiile similare sa poata fi grupate corect in timp.
 
 Lista de categorii standard (alege exact aceasta formulare cand se potriveste):
-"timp de asteptare mare", "mancare rece", "portie mica", "gust nepotrivit", "personal nepoliticos", "personal lent", "curatenie", "zgomot / muzica prea tare", "temperatura in local", "pret perceput mare", "greseala la comanda", "lipsa de disponibilitate produse", "problema cu plata / nota de plata", "igiena alimentara"
+"timp de așteptare mare", "mâncare rece", "porție mică", "gust nepotrivit", "personal nepoliticos", "personal lent", "curățenie", "zgomot / muzică prea tare", "temperatură în local", "preț perceput mare", "greșeală la comandă", "lipsă de disponibilitate produse", "problemă cu plata / nota de plată", "igienă alimentară"
 
 Reguli stricte pentru "suggested_reply":
 - NU promite niciodata rambursari, compensatii, reduceri, concedieri de personal sau orice actiune concreta pe care restaurantul nu te-a autorizat explicit sa o promiti.
@@ -53,7 +53,7 @@ Primesti o lista numerotata de mesaje de reclamatie. Identifica cele mai frecven
 Raspunde STRICT cu JSON, fara alt text in jur:
 {"themes": [{"theme": "...", "count": N, "example": "..."}]}
 
-- "theme": descriere scurta in romana, maxim 6 cuvinte (ex: "timp de asteptare mare", "muzica prea tare")
+- "theme": descriere scurta in romana, maxim 6 cuvinte (ex: "timp de așteptare mare", "muzică prea tare")
 - "count": in cate mesaje diferite apare aceasta tema, aproximativ, dupa judecata ta
 - "example": un citat scurt, maxim 15 cuvinte, dintr-un mesaj reprezentativ pentru acea tema
 
