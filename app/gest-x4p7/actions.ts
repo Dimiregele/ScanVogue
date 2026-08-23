@@ -58,7 +58,7 @@ export async function sendComplaintReply(complaintId: string, replyText: string)
   // Nume cu litera mare la inceput -- daca proprietarul/clientul l-a scris
   // cu litere mici (ex. la testare), tot arata ingrijit in email.
   const displayName = complaint.contact_name
-    ? complaint.contact_name.trim().replace(/^\p{L}/u, (c) => c.toLocaleUpperCase("ro-RO"))
+    ? complaint.contact_name.trim().replace(/^\p{L}/u, (c: string) => c.toLocaleUpperCase("ro-RO"))
     : null;
 
   const restaurantName = restaurant?.name ?? "restaurant";
