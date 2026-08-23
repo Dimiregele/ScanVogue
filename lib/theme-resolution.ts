@@ -12,6 +12,7 @@ const NOISE_THRESHOLD_PCT = 10;
 export type ResolutionStatus = "too_early" | "insufficient_data" | "improved" | "worsened" | "unchanged";
 
 export type ResolutionOutcome = {
+  id: string;
   theme: string;
   resolvedAt: string;
   note: string | null;
@@ -22,36 +23,22 @@ export type ResolutionOutcome = {
   deltaPct: number | null; // null cand nu exista baza de comparatie (countBefore = 0)
 };
 
-export async function getLatestResolutionOutcome(
+// Calculeaza rezultatul pentru O REZOLVARE SPECIFICA (id + data), nu neaparat
+// "ultima" -- necesar pentru bucla catre client, care trebuie sa proceseze
+// exact randul nenotificat inca, nu neaparat cel mai recent din tabela.
+export async function computeOutcomeForResolution(
   restaurantId: string,
-  theme: string
-): Promise<ResolutionOutcome | null> {
-  const { data: resolution, error } = await supabaseAdmin
-    .from("theme_resolutions")
-    .select("theme, resolved_at, note")
-    .eq("restaurant_id", restaurantId)
-    .eq("theme", theme)
-    .order("resolved_at", { ascending: false })
-    .limit(1)
-    .maybeSingle();
-
-  if (error || !resolution) return null;
-
-  const resolvedAt = new Date(resolution.resolved_at);
+  theme: string,
+  id: string,
+  resolvedAtIso: string,
+  note: string | null
+): Promise<ResolutionOutcome> {
+  const resolvedAt = new Date(resolvedAtIso);
   const now = new Date();
   const daysSinceResolved = Math.floor((now.getTime() - resolvedAt.getTime()) / (1000 * 60 * 60 * 24));
 
   if (daysSinceResolved < MIN_DAYS_TO_EVALUATE) {
-    return {
-      theme,
-      resolvedAt: resolution.resolved_at,
-      note: resolution.note,
-      daysSinceResolved,
-      status: "too_early",
-      countBefore: 0,
-      countAfter: 0,
-      deltaPct: null,
-    };
+    return { id, theme, resolvedAt: resolvedAtIso, note, daysSinceResolved, status: "too_early", countBefore: 0, countAfter: 0, deltaPct: null };
   }
 
   const windowDays = Math.min(daysSinceResolved, MAX_COMPARISON_WINDOW_DAYS);
@@ -86,16 +73,7 @@ export async function getLatestResolutionOutcome(
   // Fara cazuri "inainte" in fereastra, un procent ar fi inselator (ex: 0 -> 2
   // ar insemna matematic "infinit%") -- raportam doar cifrele brute in cazul asta.
   if (countBefore === 0) {
-    return {
-      theme,
-      resolvedAt: resolution.resolved_at,
-      note: resolution.note,
-      daysSinceResolved,
-      status: "insufficient_data",
-      countBefore,
-      countAfter,
-      deltaPct: null,
-    };
+    return { id, theme, resolvedAt: resolvedAtIso, note, daysSinceResolved, status: "insufficient_data", countBefore, countAfter, deltaPct: null };
   }
 
   const deltaPct = Math.round(((countAfter - countBefore) / countBefore) * 100);
@@ -104,16 +82,25 @@ export async function getLatestResolutionOutcome(
   else if (deltaPct >= NOISE_THRESHOLD_PCT) status = "worsened";
   else status = "unchanged";
 
-  return {
-    theme,
-    resolvedAt: resolution.resolved_at,
-    note: resolution.note,
-    daysSinceResolved,
-    status,
-    countBefore,
-    countAfter,
-    deltaPct,
-  };
+  return { id, theme, resolvedAt: resolvedAtIso, note, daysSinceResolved, status, countBefore, countAfter, deltaPct };
+}
+
+export async function getLatestResolutionOutcome(
+  restaurantId: string,
+  theme: string
+): Promise<ResolutionOutcome | null> {
+  const { data: resolution, error } = await supabaseAdmin
+    .from("theme_resolutions")
+    .select("id, theme, resolved_at, note")
+    .eq("restaurant_id", restaurantId)
+    .eq("theme", theme)
+    .order("resolved_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (error || !resolution) return null;
+
+  return computeOutcomeForResolution(restaurantId, theme, resolution.id, resolution.resolved_at, resolution.note);
 }
 
 export function resolutionOutcomeLabel(outcome: ResolutionOutcome): string {
