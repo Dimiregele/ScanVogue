@@ -1,0 +1,33 @@
+name: Bucla Catre Client
+
+# Verifica saptamanal daca vreun remediu marcat "rezolvat" a fost confirmat
+# statistic (imbunatatire reala, nu doar declarata) si, doar in acel caz,
+# trimite un mesaj scurt catre clientii care s-au plans exact de acea tema
+# inainte de remediu. Nu trimite niciodata daca rezultatul e neconcludent
+# sau nu arata imbunatatire.
+
+on:
+  schedule:
+    # Luni la 07:00 UTC -- dupa raportul de teme saptamanal (06:30 UTC),
+    # ca sa nu se suprapuna cererile catre acelasi API.
+    - cron: "0 7 * * 1"
+  workflow_dispatch: {}
+
+jobs:
+  trigger-client-loop:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Declanseaza bucla catre client
+        run: |
+          STATUS=$(curl -s -o /tmp/response.json -w "%{http_code}" \
+            -X POST "https://scanvogue.ro/api/client-loop" \
+            -H "x-report-secret: ${CLIENT_LOOP_SECRET}")
+          echo "Status HTTP: $STATUS"
+          echo "Raspuns:"
+          cat /tmp/response.json
+          if [ "$STATUS" -ge 400 ]; then
+            echo "::error::Bucla catre client a esuat (status $STATUS)."
+            exit 1
+          fi
+        env:
+          CLIENT_LOOP_SECRET: ${{ secrets.CLIENT_LOOP_SECRET }}
