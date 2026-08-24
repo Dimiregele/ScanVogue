@@ -422,19 +422,9 @@ export default function ScanClient({ restaurant, scanId }: { restaurant: Restaur
                 <p className="onyx-fade-1" style={{ color: COLORS.textPrimary, fontSize: 16, marginBottom: 8, fontWeight: 500 }}>
                   Mulțumim, mesajul tău a ajuns la echipa noastră!
                 </p>
-                <p className="onyx-fade-2" style={{ color: COLORS.textMuted, fontSize: 13.5, marginBottom: 26, lineHeight: 1.5 }}>
+                <p className="onyx-fade-2" style={{ color: COLORS.textMuted, fontSize: 13.5, lineHeight: 1.5 }}>
                   Dacă ai lăsat un contact, cineva din echipă îți va răspunde personal în cel mai scurt timp.
                 </p>
-                <div className="onyx-fade-3">
-                  <a
-                    href={restaurant.googleReviewUrl}
-                    className="onyx-link"
-                    style={{ display: "inline-flex", alignItems: "center", gap: 6, border: "1px solid rgba(255,255,255,0.12)", color: "#C9C2B4", borderRadius: 14, padding: "12px 22px", fontSize: 13.5, textDecoration: "none" }}
-                  >
-                    Lasă și o recenzie publică pe Google
-                    <ArrowUpRight size={13} />
-                  </a>
-                </div>
               </div>
             )}
 
