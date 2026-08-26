@@ -68,17 +68,6 @@ export const ADMIN_GLOBAL_CSS = `
 
 .admin-input { transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease; }
 .admin-input:focus { outline: none; border-color: ${ADMIN_COLORS.gold} !important; box-shadow: 0 0 0 3px rgba(198,161,91,0.14); background: rgba(255,255,255,0.05) !important; }
-/* Chrome forteaza un fundal galben propriu pe campurile de email/parola
-   auto-completate, care nu poate fi schimbat cu "background" normal -- se
-   suprascrie doar cu un box-shadow inset masiv, in aceeasi culoare cu
-   fundalul paginii, plus culoarea textului fortata separat. */
-.admin-input:-webkit-autofill,
-.admin-input:-webkit-autofill:hover,
-.admin-input:-webkit-autofill:focus {
-  -webkit-box-shadow: 0 0 0 1000px #14120D inset !important;
-  -webkit-text-fill-color: ${ADMIN_COLORS.textPrimary} !important;
-  caret-color: ${ADMIN_COLORS.textPrimary};
-}
 
 .admin-corner { animation: adminCornerGlow 4s ease-in-out infinite; }
 
