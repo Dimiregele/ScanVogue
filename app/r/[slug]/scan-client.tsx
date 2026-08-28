@@ -276,7 +276,11 @@ export default function ScanClient({ restaurant, scanId }: { restaurant: Restaur
           contactEmail,
         }),
       });
-      if (!res.ok) throw new Error("Trimiterea a esuat");
+      if (!res.ok) {
+        const body = await res.text().catch(() => "(fara continut)");
+        console.error(`Trimiterea a esuat -- status ${res.status}:`, body);
+        throw new Error(`Trimiterea a esuat (${res.status})`);
+      }
       setView("thanks-negative");
     } catch (err) {
       console.error(err);
