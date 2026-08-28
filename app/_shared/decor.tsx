@@ -68,6 +68,25 @@ export const ADMIN_GLOBAL_CSS = `
 
 .admin-input { transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease; }
 .admin-input:focus { outline: none; border-color: ${ADMIN_COLORS.gold} !important; box-shadow: 0 0 0 3px rgba(198,161,91,0.14); background: rgba(255,255,255,0.05) !important; }
+/* Chrome recunoaste campurile de email/parola si le pune singur un contur/
+   fundal auriu-inchis, INAINTE sa dai click sau sa scrii ceva -- de-aia
+   "Email" arata diferit de "Parola" desi au acelasi cod. Fundalul galben
+   real al lui Chrome se aplica printr-o animatie interna, nu poate fi oprit
+   doar cu "background" -- se blocheaza cu o tranzitie absurd de lunga pe
+   acea proprietate, combinata cu box-shadow pentru culoarea vizibila reala. */
+.admin-input:-webkit-autofill,
+.admin-input:-webkit-autofill:hover,
+.admin-input:-webkit-autofill:focus {
+  border-color: ${ADMIN_COLORS.inputBorder} !important;
+  -webkit-text-fill-color: ${ADMIN_COLORS.textPrimary} !important;
+  -webkit-box-shadow: 0 0 0 1000px #17140F inset !important;
+  box-shadow: 0 0 0 1000px #17140F inset !important;
+  caret-color: ${ADMIN_COLORS.textPrimary};
+  transition: background-color 600000s 0s, color 600000s 0s, border-color 0.2s ease !important;
+}
+.admin-input:-webkit-autofill:focus {
+  border-color: ${ADMIN_COLORS.gold} !important;
+}
 
 .admin-corner { animation: adminCornerGlow 4s ease-in-out infinite; }
 
