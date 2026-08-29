@@ -127,8 +127,8 @@ export default function PrivacyPolicyPage() {
           <p>
             Pentru orice întrebare legată de datele tale personale sau pentru a-ți exercita drepturile de mai
             sus, ne poți scrie la{" "}
-            <a href="mailto:dimianic123@gmail.com" style={{ color: COLORS.gold }}>
-              dimianic123@gmail.com
+            <a href="mailto:scanvogue@gmail.com" style={{ color: COLORS.gold }}>
+              scanvogue@gmail.com
             </a>
             .
           </p>
