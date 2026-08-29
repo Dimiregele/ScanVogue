@@ -77,7 +77,7 @@ export async function analyzeThemes(messages: string[]): Promise<Theme[] | null>
       body: JSON.stringify({
         model: "openai/gpt-oss-120b",
         response_format: { type: "json_object" },
-        max_tokens: 700,
+        max_tokens: 1000,
         messages: [
           { role: "system", content: THEMES_SYSTEM_PROMPT },
           { role: "user", content: numbered },
@@ -119,7 +119,13 @@ export async function analyzeComplaint(message: string): Promise<ComplaintAnalys
       body: JSON.stringify({
         model: "openai/gpt-oss-120b",
         response_format: { type: "json_object" },
-        max_tokens: 500,
+        // Generoasa deliberat -- daca modelul se opreste la mijlocul JSON-ului
+        // inainte sa termine (ex: 500 tokeni s-a dovedit prea putin), Groq
+        // respinge tot raspunsul ca invalid si pierdem rezumatul + raspunsul
+        // sugerat + tema, desi reclamatia oricum se salveaza. Nu costa in plus
+        // sa fie mare -- se factureaza doar ce genereaza efectiv modelul, nu
+        // plafonul in sine.
+        max_tokens: 1200,
         messages: [
           { role: "system", content: SYSTEM_PROMPT },
           { role: "user", content: message },
