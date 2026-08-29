@@ -145,10 +145,10 @@ export function AdminCornerFrame({ children }: { children: React.ReactNode }) {
   const cornerStyle = { position: "absolute" as const, width: 20, height: 20, borderColor: ADMIN_COLORS.gold };
   return (
     <div style={{ position: "relative" }}>
-      <span className="admin-corner" style={{ ...cornerStyle, top: -8, left: -8, borderTop: `1px solid ${ADMIN_COLORS.gold}`, borderLeft: `1px solid ${ADMIN_COLORS.gold}`, borderTopLeftRadius: 4 }} />
-      <span className="admin-corner" style={{ ...cornerStyle, top: -8, right: -8, borderTop: `1px solid ${ADMIN_COLORS.gold}`, borderRight: `1px solid ${ADMIN_COLORS.gold}`, borderTopRightRadius: 4, animationDelay: "0.5s" }} />
-      <span className="admin-corner" style={{ ...cornerStyle, bottom: -8, left: -8, borderBottom: `1px solid ${ADMIN_COLORS.gold}`, borderLeft: `1px solid ${ADMIN_COLORS.gold}`, borderBottomLeftRadius: 4, animationDelay: "1s" }} />
-      <span className="admin-corner" style={{ ...cornerStyle, bottom: -8, right: -8, borderBottom: `1px solid ${ADMIN_COLORS.gold}`, borderRight: `1px solid ${ADMIN_COLORS.gold}`, borderBottomRightRadius: 4, animationDelay: "1.5s" }} />
+      <span className="admin-corner" style={{ ...cornerStyle, top: 0, left: 0, borderTop: `1px solid ${ADMIN_COLORS.gold}`, borderLeft: `1px solid ${ADMIN_COLORS.gold}`, borderTopLeftRadius: 18 }} />
+      <span className="admin-corner" style={{ ...cornerStyle, top: 0, right: 0, borderTop: `1px solid ${ADMIN_COLORS.gold}`, borderRight: `1px solid ${ADMIN_COLORS.gold}`, borderTopRightRadius: 18, animationDelay: "0.5s" }} />
+      <span className="admin-corner" style={{ ...cornerStyle, bottom: 0, left: 0, borderBottom: `1px solid ${ADMIN_COLORS.gold}`, borderLeft: `1px solid ${ADMIN_COLORS.gold}`, borderBottomLeftRadius: 18, animationDelay: "1s" }} />
+      <span className="admin-corner" style={{ ...cornerStyle, bottom: 0, right: 0, borderBottom: `1px solid ${ADMIN_COLORS.gold}`, borderRight: `1px solid ${ADMIN_COLORS.gold}`, borderBottomRightRadius: 18, animationDelay: "1.5s" }} />
       {children}
     </div>
   );
