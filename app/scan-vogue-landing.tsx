@@ -1,5 +1,5 @@
 "use client";
-
+ 
 /**
  * ScanVogue — pagina de promovare (single-file, portabil).
  *
@@ -9,13 +9,13 @@
  *
  * Contact / vânzări: scanvogue@gmail.com
  */
-
+ 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
-
+ 
 /* ------------------------------------------------------------------ */
 /* Design tokens                                                       */
 /* ------------------------------------------------------------------ */
-
+ 
 const C = {
   bg: "#0B0A08",
   bg2: "#100E0B",
@@ -31,23 +31,22 @@ const C = {
   green: "#8FD3A0",
   amber: "#E0A88C",
 };
-
+ 
 const SALES_EMAIL = "scanvogue@gmail.com";
-const WHATSAPP_NUMBER = "40786042404";
-
+ 
 const serif = "'Cormorant Garamond', Georgia, serif";
 const sans = "'Inter', system-ui, -apple-system, Segoe UI, sans-serif";
-
+ 
 const CSS = `
 @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap');
-
+ 
 *, *::before, *::after { box-sizing: border-box; }
 html { scroll-behavior: smooth; }
 body { margin: 0; }
-
+ 
 .sv-root { background: ${C.bg}; color: ${C.text}; font-family: ${sans}; overflow-x: hidden; }
 .sv-root ::selection { background: ${C.gold}; color: #100F0D; }
-
+ 
 @keyframes sv-fadeUp { from { opacity:0; transform: translateY(26px); } to { opacity:1; transform:none; } }
 @keyframes sv-float1 { 0%,100% { transform: translate(0,0) scale(1); } 50% { transform: translate(40px,-50px) scale(1.12); } }
 @keyframes sv-float2 { 0%,100% { transform: translate(0,0) scale(1); } 50% { transform: translate(-45px,35px) scale(1.08); } }
@@ -59,10 +58,10 @@ body { margin: 0; }
 @keyframes sv-pulse { 0%,100% { box-shadow: 0 0 0 0 rgba(198,161,91,.45); } 70% { box-shadow: 0 0 0 16px rgba(198,161,91,0); } }
 @keyframes sv-shimmer { from { background-position: -220% 0; } to { background-position: 220% 0; } }
 @keyframes sv-riseBar { from { transform: scaleY(0); } to { transform: scaleY(1); } }
-
+ 
 .sv-reveal { opacity: 0; transform: translateY(28px); transition: opacity .8s cubic-bezier(.16,1,.3,1), transform .8s cubic-bezier(.16,1,.3,1); will-change: opacity, transform; }
 .sv-reveal.sv-in { opacity: 1; transform: none; }
-
+ 
 .sv-btn { position: relative; font-family: ${sans}; cursor: pointer; border-radius: 14px; font-weight: 600; font-size: 15px;
   display: inline-flex; align-items: center; justify-content: center; gap: 9px; padding: 15px 26px; border: 1px solid transparent;
   transition: transform .2s cubic-bezier(.34,1.56,.64,1), box-shadow .3s ease, background .3s ease, border-color .3s ease, color .3s ease; text-decoration: none; }
@@ -72,47 +71,47 @@ body { margin: 0; }
 .sv-btn-ghost { background: rgba(198,161,91,.05); color: ${C.text}; border-color: rgba(198,161,91,.32); }
 .sv-btn-ghost:hover { transform: translateY(-3px); border-color: ${C.gold}; background: rgba(198,161,91,.11); }
 .sv-btn-sm { padding: 11px 18px; font-size: 13.5px; border-radius: 12px; }
-
+ 
 .sv-card { background: ${C.card}; border: 1px solid ${C.border}; border-radius: 20px; backdrop-filter: blur(10px); }
 .sv-lift { transition: transform .35s cubic-bezier(.16,1,.3,1), border-color .35s ease, box-shadow .35s ease; }
 .sv-lift:hover { transform: translateY(-6px); border-color: rgba(198,161,91,.42); box-shadow: 0 24px 60px -30px rgba(0,0,0,.9); }
-
+ 
 .sv-input { width: 100%; background: rgba(255,255,255,.035); border: 1px solid rgba(255,255,255,.09); border-radius: 12px;
   color: ${C.text}; font-family: ${sans}; font-size: 14px; padding: 13px 14px; transition: border-color .2s, box-shadow .2s, background .2s; }
 .sv-input:focus { outline: none; border-color: ${C.gold}; box-shadow: 0 0 0 3px rgba(198,161,91,.15); background: rgba(255,255,255,.05); }
 .sv-input::placeholder { color: #6E6759; }
-
+ 
 .sv-corner { position: absolute; width: 20px; height: 20px; animation: sv-corner 3.6s ease-in-out infinite; }
-
+ 
 .sv-eyebrow { font-size: 10.5px; letter-spacing: .3em; text-transform: uppercase; color: ${C.gold}; font-weight: 600; }
 .sv-h2 { font-family: ${serif}; font-weight: 600; font-size: clamp(30px, 4.6vw, 50px); line-height: 1.08; margin: 14px 0 0; letter-spacing: -.01em; }
 .sv-lead { color: ${C.muted}; font-size: 16px; line-height: 1.7; margin: 16px 0 0; max-width: 58ch; }
-
+ 
 .sv-link { color: ${C.muted}; text-decoration: none; transition: color .2s; font-size: 13.5px; }
 .sv-link:hover { color: ${C.gold}; }
-
+ 
 .sv-marquee-track { display: flex; width: max-content; animation: sv-marquee 38s linear infinite; }
 .sv-marquee:hover .sv-marquee-track { animation-play-state: paused; }
-
+ 
 .sv-grid-3 { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 18px; }
 .sv-grid-2 { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 18px; }
 .sv-split { display: grid; grid-template-columns: 0.92fr 1.08fr; gap: 46px; align-items: center; }
-
+ 
 .sv-tab { border: 1px solid transparent; background: transparent; color: ${C.muted}; font-family: ${sans}; font-size: 13.5px; font-weight: 600;
   padding: 10px 18px; border-radius: 999px; cursor: pointer; transition: all .25s ease; }
 .sv-tab:hover { color: ${C.text}; }
 .sv-tab-on { background: rgba(198,161,91,.12); border-color: rgba(198,161,91,.4); color: ${C.text}; }
-
+ 
 .sv-phone { width: 360px; max-width: 100%; border-radius: 42px; padding: 12px; background: linear-gradient(160deg, #2A2620, #100E0B 55%);
   border: 1px solid rgba(198,161,91,.22); box-shadow: 0 50px 90px -40px rgba(0,0,0,1), inset 0 1px 0 rgba(255,255,255,.06); }
 .sv-phone-screen { position: relative; overflow: hidden; border-radius: 32px; background: radial-gradient(120% 80% at 50% 0%, #18140F 0%, ${C.bg} 62%);
   min-height: 580px; padding: 28px 24px; display: flex; flex-direction: column; }
-
+ 
 .sv-bar { transform-origin: bottom; animation: sv-riseBar .7s cubic-bezier(.16,1,.3,1) both; }
-
+ 
 .sv-shimmer { background: linear-gradient(100deg, transparent 20%, rgba(232,210,160,.75) 50%, transparent 80%);
   background-size: 220% 100%; -webkit-background-clip: text; background-clip: text; color: transparent; animation: sv-shimmer 5.5s linear infinite; }
-
+ 
 @media (max-width: 900px) {
   .sv-split { grid-template-columns: 1fr; gap: 34px; }
   .sv-grid-3 { grid-template-columns: 1fr; }
@@ -124,11 +123,11 @@ body { margin: 0; }
   .sv-root * { animation-duration: .001ms !important; animation-iteration-count: 1 !important; }
 }
 `;
-
+ 
 /* ------------------------------------------------------------------ */
 /* Utilitare mici                                                      */
 /* ------------------------------------------------------------------ */
-
+ 
 function useReveal() {
   useEffect(() => {
     const els = Array.from(document.querySelectorAll<HTMLElement>(".sv-reveal"));
@@ -151,7 +150,7 @@ function useReveal() {
     return () => io.disconnect();
   }, []);
 }
-
+ 
 function useInView<T extends HTMLElement>() {
   const ref = useRef<T | null>(null);
   const [seen, setSeen] = useState(false);
@@ -173,7 +172,7 @@ function useInView<T extends HTMLElement>() {
   }, [seen]);
   return { ref, seen };
 }
-
+ 
 function Counter({ to, decimals = 0, suffix = "", prefix = "" }: { to: number; decimals?: number; suffix?: string; prefix?: string }) {
   const { ref, seen } = useInView<HTMLSpanElement>();
   const [v, setV] = useState(0);
@@ -199,7 +198,7 @@ function Counter({ to, decimals = 0, suffix = "", prefix = "" }: { to: number; d
     </span>
   );
 }
-
+ 
 /* Iconițe inline (fără dependențe externe) */
 const Ic = {
   star: (p: { size?: number; fill?: string; color?: string }) => (
@@ -254,7 +253,7 @@ const Ic = {
     </svg>
   ),
 };
-
+ 
 function Corners({ children, inset = -9 }: { children: React.ReactNode; inset?: number }) {
   const s = { borderColor: C.gold } as React.CSSProperties;
   return (
@@ -267,7 +266,7 @@ function Corners({ children, inset = -9 }: { children: React.ReactNode; inset?: 
     </div>
   );
 }
-
+ 
 function Section({ id, children, style }: { id?: string; children: React.ReactNode; style?: React.CSSProperties }) {
   return (
     <section id={id} style={{ position: "relative", padding: "clamp(70px, 9vw, 130px) 22px", ...style }}>
@@ -275,17 +274,17 @@ function Section({ id, children, style }: { id?: string; children: React.ReactNo
     </section>
   );
 }
-
+ 
 /* mailto helpers (folosite doar ca fallback dacă serverul nu răspunde) */
 const mailto = (subject: string, body: string) =>
   `mailto:${SALES_EMAIL}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-
+ 
 /* ------------------------------------------------------------------ */
 /* Formular de contact (trimite email real prin server)                */
 /* ------------------------------------------------------------------ */
-
+ 
 const CONTACT_ENDPOINT = "/api/contact";
-
+ 
 const fieldStyle: React.CSSProperties = {
   width: "100%",
   background: "rgba(255,255,255,0.03)",
@@ -296,7 +295,7 @@ const fieldStyle: React.CSSProperties = {
   padding: "11px 13px",
   outline: "none",
 };
-
+ 
 const labelStyle: React.CSSProperties = {
   display: "block",
   fontSize: 11.5,
@@ -305,17 +304,15 @@ const labelStyle: React.CSSProperties = {
   color: C.muted,
   marginBottom: 6,
 };
-
+ 
 function ContactModal({
   open,
   onClose,
   restaurantName,
-  whatsappHref,
 }: {
   open: boolean;
   onClose: () => void;
   restaurantName: string;
-  whatsappHref: string;
 }) {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -324,11 +321,11 @@ function ContactModal({
   const [company, setCompany] = useState(""); // honeypot
   const [status, setStatus] = useState<"idle" | "sending" | "sent" | "error">("idle");
   const [error, setError] = useState("");
-
+ 
   useEffect(() => {
     if (open) setRestaurant(restaurantName);
   }, [open, restaurantName]);
-
+ 
   useEffect(() => {
     if (!open) return;
     const onKey = (e: KeyboardEvent) => {
@@ -342,14 +339,14 @@ function ContactModal({
       document.body.style.overflow = prev;
     };
   }, [open, onClose]);
-
+ 
   if (!open) return null;
-
+ 
   const fallbackMailto = mailto(
     `Cerere ofertă ScanVogue — ${restaurant || restaurantName}`,
     `Nume: ${name}\nEmail: ${email}\nLocal: ${restaurant}\n\n${message}`
   );
-
+ 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
@@ -357,7 +354,7 @@ function ContactModal({
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email.trim()))
       return setError("Adresa de email nu pare validă.");
     if (message.trim().length < 5) return setError("Te rugăm să scrii un mesaj.");
-
+ 
     setStatus("sending");
     try {
       const res = await fetch(CONTACT_ENDPOINT, {
@@ -377,7 +374,7 @@ function ContactModal({
       setError("Nu am reușit să contactăm serverul. Verifică conexiunea.");
     }
   };
-
+ 
   return (
     <div
       role="dialog"
@@ -442,7 +439,7 @@ function ContactModal({
             ×
           </button>
         </div>
-
+ 
         {status === "sent" ? (
           <div style={{ marginTop: 24, textAlign: "center" }}>
             <div
@@ -467,13 +464,10 @@ function ContactModal({
               Mulțumim, {name.split(" ")[0] || "!"} — am primit cererea pentru{" "}
               <span style={{ color: C.gold }}>{restaurant || restaurantName}</span>.
             </p>
-            <div style={{ display: "flex", gap: 10, justifyContent: "center", marginTop: 20, flexWrap: "wrap" }}>
-              <button className="sv-btn sv-btn-ghost sv-btn-sm" type="button" onClick={onClose}>
+            <div style={{ display: "flex", justifyContent: "center", marginTop: 20 }}>
+              <button className="sv-btn sv-btn-primary sv-btn-sm" type="button" onClick={onClose}>
                 Închide
               </button>
-              <a className="sv-btn sv-btn-primary sv-btn-sm" href={whatsappHref} target="_blank" rel="noopener noreferrer">
-                <Ic.msg /> Scrie-ne și pe WhatsApp
-              </a>
             </div>
           </div>
         ) : (
@@ -494,7 +488,7 @@ function ContactModal({
               <label style={labelStyle} htmlFor="sv-msg">Mesaj</label>
               <textarea id="sv-msg" style={{ ...fieldStyle, minHeight: 108, resize: "vertical" }} value={message} onChange={(e) => setMessage(e.target.value)} placeholder="Câte mese aveți, ce vă interesează, când putem porni…" maxLength={4000} />
             </div>
-
+ 
             {/* honeypot anti-spam — ascuns pentru oameni */}
             <input
               tabIndex={-1}
@@ -504,7 +498,7 @@ function ContactModal({
               aria-hidden="true"
               style={{ position: "absolute", left: "-9999px", width: 1, height: 1, opacity: 0 }}
             />
-
+ 
             {error && (
               <div
                 style={{
@@ -519,10 +513,7 @@ function ContactModal({
               >
                 {error}
                 {status === "error" && (
-                  <div style={{ marginTop: 8, display: "flex", gap: 8, flexWrap: "wrap" }}>
-                    <a className="sv-btn sv-btn-ghost sv-btn-sm" href={whatsappHref} target="_blank" rel="noopener noreferrer">
-                      <Ic.msg /> WhatsApp
-                    </a>
+                  <div style={{ marginTop: 8 }}>
                     <a className="sv-btn sv-btn-ghost sv-btn-sm" href={fallbackMailto}>
                       <Ic.mail /> Trimite pe email
                     </a>
@@ -530,7 +521,7 @@ function ContactModal({
                 )}
               </div>
             )}
-
+ 
             <button className="sv-btn sv-btn-primary" type="submit" disabled={status === "sending"} style={{ marginTop: 2, opacity: status === "sending" ? 0.7 : 1 }}>
               {status === "sending" ? (
                 <>
@@ -562,14 +553,14 @@ function ContactModal({
     </div>
   );
 }
-
-
+ 
+ 
 /* ------------------------------------------------------------------ */
 /* DEMO 1 — pagina clientului (replică 1:1 a paginii reale /r/[slug])  */
 /* ------------------------------------------------------------------ */
-
+ 
 type DemoView = "initial" | "negative-form" | "thanks-negative" | "redirecting";
-
+ 
 function ChoiceButton({
   onClick,
   icon,
@@ -607,25 +598,25 @@ function ChoiceButton({
     </button>
   );
 }
-
+ 
 function ClientDemo({ restaurantName }: { restaurantName: string }) {
   const [view, setView] = useState<DemoView>("initial");
   const [message, setMessage] = useState("");
   const [contactName, setContactName] = useState("");
   const [contactEmail, setContactEmail] = useState("");
   const [submitting, setSubmitting] = useState(false);
-
+ 
   const len = restaurantName.length;
   const wordmarkSize = len <= 9 ? 28 : len <= 13 ? 24 : len <= 17 ? 20 : len <= 21 ? 17 : len <= 27 ? 14 : 12;
   const wordmarkSpacing = len <= 9 ? "0.14em" : len <= 13 ? "0.1em" : len <= 17 ? "0.06em" : len <= 21 ? "0.03em" : "0.01em";
-
+ 
   const reset = () => {
     setView("initial");
     setMessage("");
     setContactName("");
     setContactEmail("");
   };
-
+ 
   const handleSubmitComplaint = (e: React.FormEvent) => {
     e.preventDefault();
     if (!message.trim()) return;
@@ -635,12 +626,12 @@ function ClientDemo({ restaurantName }: { restaurantName: string }) {
       setView("thanks-negative");
     }, 900);
   };
-
+ 
   const handlePositive = () => {
     setView("redirecting");
     setTimeout(() => reset(), 2400);
   };
-
+ 
   return (
     <div className="sv-phone">
       <div className="sv-phone-screen" style={{ justifyContent: "center" }}>
@@ -650,7 +641,7 @@ function ClientDemo({ restaurantName }: { restaurantName: string }) {
           <div style={{ position: "absolute", bottom: "-12%", right: "-8%", width: 300, height: 300, borderRadius: "50%", filter: "blur(20px)", background: "radial-gradient(circle, rgba(150,100,50,0.14) 0%, transparent 70%)", animation: "sv-float2 11s ease-in-out infinite" }} />
           <div style={{ position: "absolute", top: "35%", right: "-15%", width: 200, height: 200, borderRadius: "50%", filter: "blur(20px)", background: "radial-gradient(circle, rgba(198,161,91,0.1) 0%, transparent 70%)", animation: "sv-float1 8s ease-in-out infinite" }} />
         </div>
-
+ 
         <div style={{ position: "relative", zIndex: 1 }}>
           <Corners>
             <div
@@ -684,25 +675,25 @@ function ClientDemo({ restaurantName }: { restaurantName: string }) {
                   Restaurant
                 </div>
               </div>
-
+ 
               {view === "initial" && (
                 <div>
                   <p style={{ textAlign: "center", color: C.muted, fontSize: 14, lineHeight: 1.5, marginBottom: 26, animation: "sv-fadeUp .55s cubic-bezier(.16,1,.3,1) .15s both" }}>
                     Spune-ne cum a fost — alege ce ți se potrivește.
                   </p>
-
+ 
                   <div style={{ animation: "sv-fadeUp .55s cubic-bezier(.16,1,.3,1) .25s both" }}>
                     <ChoiceButton onClick={handlePositive} icon={<Ic.star size={17} />} arrow>
                       Lasă o recenzie pe Google
                     </ChoiceButton>
                   </div>
-
+ 
                   <div style={{ display: "flex", alignItems: "center", gap: 10, margin: "18px 0", animation: "sv-fadeUp .55s cubic-bezier(.16,1,.3,1) .25s both" }}>
                     <div style={{ flex: 1, height: 1, background: "rgba(255,255,255,0.08)" }} />
                     <span style={{ fontSize: 11, letterSpacing: "0.14em", color: C.muted, textTransform: "uppercase" }}>sau</span>
                     <div style={{ flex: 1, height: 1, background: "rgba(255,255,255,0.08)" }} />
                   </div>
-
+ 
                   <div style={{ animation: "sv-fadeUp .55s cubic-bezier(.16,1,.3,1) .35s both" }}>
                     <p style={{ textAlign: "center", color: C.muted, fontSize: 12.5, marginBottom: 10, lineHeight: 1.5 }}>
                       Ai avut o problemă și vrei să o rezolvăm imediat?
@@ -713,7 +704,7 @@ function ClientDemo({ restaurantName }: { restaurantName: string }) {
                   </div>
                 </div>
               )}
-
+ 
               {view === "negative-form" && (
                 <form onSubmit={handleSubmitComplaint}>
                   <p style={{ textAlign: "center", color: C.text, fontSize: 16, marginBottom: 4, fontWeight: 500, animation: "sv-fadeUp .55s cubic-bezier(.16,1,.3,1) .05s both" }}>
@@ -722,7 +713,7 @@ function ClientDemo({ restaurantName }: { restaurantName: string }) {
                   <p style={{ textAlign: "center", color: C.muted, fontSize: 13.5, marginBottom: 26, lineHeight: 1.5, animation: "sv-fadeUp .55s cubic-bezier(.16,1,.3,1) .05s both" }}>
                     Spune-ne ce nu a fost în regulă — mesajul ajunge direct la echipa noastră.
                   </p>
-
+ 
                   <textarea
                     required
                     value={message}
@@ -732,7 +723,7 @@ function ClientDemo({ restaurantName }: { restaurantName: string }) {
                     className="sv-input"
                     style={{ marginBottom: 18, resize: "none" }}
                   />
-
+ 
                   <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 14 }}>
                     <div style={{ flex: 1, height: 1, background: "rgba(255,255,255,0.08)" }} />
                     <span style={{ fontSize: 10.5, letterSpacing: "0.18em", color: C.gold, textTransform: "uppercase", whiteSpace: "nowrap" }}>
@@ -743,7 +734,7 @@ function ClientDemo({ restaurantName }: { restaurantName: string }) {
                   <p style={{ textAlign: "center", color: C.muted, fontSize: 12.5, marginBottom: 14, lineHeight: 1.5 }}>
                     Lasă-ne un contact ca să te putem suna sau scrie personal și să îndreptăm lucrurile.
                   </p>
-
+ 
                   <input
                     value={contactName}
                     onChange={(e) => setContactName(e.target.value)}
@@ -759,7 +750,7 @@ function ClientDemo({ restaurantName }: { restaurantName: string }) {
                     className="sv-input"
                     style={{ marginBottom: 20 }}
                   />
-
+ 
                   <button type="submit" className="sv-btn sv-btn-primary" style={{ width: "100%" }} disabled={submitting}>
                     {submitting ? (
                       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#100F0D" strokeWidth="2.2" strokeLinecap="round" style={{ animation: "sv-spin .8s linear infinite" }}>
@@ -779,7 +770,7 @@ function ClientDemo({ restaurantName }: { restaurantName: string }) {
                   </button>
                 </form>
               )}
-
+ 
               {view === "thanks-negative" && (
                 <div style={{ textAlign: "center", padding: "8px 0" }}>
                   <svg width="52" height="52" viewBox="0 0 52 52" style={{ margin: "0 auto 18px", display: "block" }}>
@@ -795,7 +786,7 @@ function ClientDemo({ restaurantName }: { restaurantName: string }) {
                   <button className="sv-btn sv-btn-ghost sv-btn-sm" style={{ marginTop: 18 }} onClick={reset}>Reia demo-ul</button>
                 </div>
               )}
-
+ 
               {view === "redirecting" && (
                 <div style={{ textAlign: "center", padding: "20px 0" }}>
                   <div style={{ width: 40, height: 40, margin: "0 auto 20px", borderRadius: "50%", border: "2px solid rgba(198,161,91,0.2)", borderTopColor: C.gold, animation: "sv-spin .9s linear infinite" }} />
@@ -810,13 +801,13 @@ function ClientDemo({ restaurantName }: { restaurantName: string }) {
     </div>
   );
 }
-
+ 
 /* ------------------------------------------------------------------ */
 /* DEMO 2 — panoul de manager (replică 1:1 a panoului real)            */
 /* ------------------------------------------------------------------ */
-
+ 
 type ComplaintStatus = "new" | "read" | "resolved";
-
+ 
 type Complaint = {
   id: string;
   message: string;
@@ -830,14 +821,14 @@ type Complaint = {
   ai_sensitive: boolean;
   reply_sent_at: string | null;
 };
-
+ 
 const dayMs = 24 * 60 * 60 * 1000;
 const daysAgo = (d: number, hour: number, minute = 0) => {
   const t = new Date(Date.now() - d * dayMs);
   t.setHours(hour, minute, 0, 0);
   return t.toISOString();
 };
-
+ 
 const SEED_COMPLAINTS: Complaint[] = [
   {
     id: "c1",
@@ -909,7 +900,7 @@ const SEED_COMPLAINTS: Complaint[] = [
     reply_sent_at: null,
   },
 ];
-
+ 
 const LIVE_COMPLAINT_TEMPLATE: Omit<Complaint, "id" | "created_at"> = {
   message: "Am comandat un burger fără ceapă și a venit cu ceapă. L-au refăcut, dar am pierdut 20 de minute.",
   contact_name: "Vlad S.",
@@ -922,23 +913,23 @@ const LIVE_COMPLAINT_TEMPLATE: Omit<Complaint, "id" | "created_at"> = {
   ai_sensitive: false,
   reply_sent_at: null,
 };
-
+ 
 type ThemeRowData = { theme: string; count: number; timePattern: string | null; outcome: string | null };
-
+ 
 const SEED_THEMES: ThemeRowData[] = [
   { theme: "Timp de așteptare la masă", count: 14, timePattern: "Mai ales vineri și sâmbătă, 20:00–21:30", outcome: null },
   { theme: "Temperatura preparatelor", count: 9, timePattern: "Fără tipar clar de oră", outcome: null },
   { theme: "Zgomot / muzică prea tare", count: 6, timePattern: "După ora 22:00", outcome: "Marcat rezolvat pe 12 iunie — de atunci 0 reclamații pe această temă." },
   { theme: "Atitudinea personalului de sală", count: 4, timePattern: "Serile de weekend", outcome: null },
 ];
-
+ 
 type Granularity = "day" | "week" | "month" | "year";
 const GRANULARITY_LABEL: Record<Granularity, string> = { day: "Zi", week: "Săptămână", month: "Lună", year: "An" };
 const WINDOW_SIZE: Record<Granularity, number> = { day: 30, week: 12, month: 12, year: 6 };
 const pad = (n: number) => n.toString().padStart(2, "0");
-
+ 
 type Scan = { created_at: string; choice: "positive" | "negative" | null };
-
+ 
 /* set de scanări demo, deterministic — imită traficul unui restaurant */
 function buildDemoScans(): Scan[] {
   const out: Scan[] = [];
@@ -970,7 +961,7 @@ function buildDemoScans(): Scan[] {
   }
   return out;
 }
-
+ 
 function startOfWeek(d: Date) {
   const monday = new Date(d);
   monday.setHours(0, 0, 0, 0);
@@ -978,7 +969,7 @@ function startOfWeek(d: Date) {
   monday.setDate(monday.getDate() + ((day === 0 ? -6 : 1) - day));
   return monday;
 }
-
+ 
 function bucketKeyAndLabel(date: Date, granularity: Granularity): { key: string; label: string } {
   if (granularity === "day") {
     return { key: `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`, label: `${pad(date.getDate())}.${pad(date.getMonth() + 1)}` };
@@ -993,7 +984,7 @@ function bucketKeyAndLabel(date: Date, granularity: Granularity): { key: string;
   const key = `${date.getFullYear()}`;
   return { key, label: key };
 }
-
+ 
 function emptyBuckets(granularity: Granularity, count: number) {
   const now = new Date();
   const out: { key: string; label: string }[] = [];
@@ -1008,7 +999,7 @@ function emptyBuckets(granularity: Granularity, count: number) {
   const seen = new Set<string>();
   return out.filter((b) => (seen.has(b.key) ? false : (seen.add(b.key), true)));
 }
-
+ 
 const adminCard: React.CSSProperties = {
   background: C.card,
   border: `1px solid ${C.border}`,
@@ -1028,7 +1019,7 @@ const smallPill: React.CSSProperties = {
   whiteSpace: "nowrap",
 };
 const ghostPill: React.CSSProperties = { ...smallPill, border: "1px solid rgba(255,255,255,0.1)", color: C.muted };
-
+ 
 function StackedBars({
   data,
   height,
@@ -1061,13 +1052,13 @@ function StackedBars({
     </div>
   );
 }
-
+ 
 function ThemeRow({ row }: { row: ThemeRowData }) {
   const [formOpen, setFormOpen] = useState(false);
   const [note, setNote] = useState("");
   const [justMarked, setJustMarked] = useState(false);
   const [saving, setSaving] = useState(false);
-
+ 
   const submit = () => {
     setSaving(true);
     setTimeout(() => {
@@ -1077,7 +1068,7 @@ function ThemeRow({ row }: { row: ThemeRowData }) {
       setJustMarked(true);
     }, 700);
   };
-
+ 
   return (
     <div>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 4 }}>
@@ -1117,21 +1108,21 @@ function ThemeRow({ row }: { row: ThemeRowData }) {
     </div>
   );
 }
-
+ 
 const STATUS_LABEL: Record<ComplaintStatus, string> = { new: "Nouă", read: "Citită", resolved: "Rezolvată" };
 const STATUS_COLOR: Record<ComplaintStatus, string> = { new: C.amber, read: C.gold, resolved: C.green };
-
+ 
 function ComplaintCard({ complaint: c, onStatus, highlight }: { complaint: Complaint; onStatus: (id: string, s: ComplaintStatus) => void; highlight?: boolean }) {
   const [replyText, setReplyText] = useState(c.ai_suggested_reply ?? "");
   const [showComposer, setShowComposer] = useState(false);
   const [sending, setSending] = useState(false);
   const [sentAt, setSentAt] = useState<string | null>(c.reply_sent_at);
-
+ 
   const nextStatus: ComplaintStatus = c.status === "new" ? "read" : c.status === "read" ? "resolved" : "new";
-
+ 
   const fmt = (iso: string) =>
     new Date(iso).toLocaleString("ro-RO", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
-
+ 
   const send = () => {
     setSending(true);
     setTimeout(() => {
@@ -1140,7 +1131,7 @@ function ComplaintCard({ complaint: c, onStatus, highlight }: { complaint: Compl
       setShowComposer(false);
     }, 800);
   };
-
+ 
   return (
     <div
       style={{
@@ -1174,26 +1165,26 @@ function ComplaintCard({ complaint: c, onStatus, highlight }: { complaint: Compl
           {STATUS_LABEL[c.status]}
         </button>
       </div>
-
+ 
       <div style={{ color: C.muted, fontSize: 12, marginTop: 8 }}>
         {fmt(c.created_at)}
         {c.contact_name && <> · contact: {c.contact_name}</>}
         {c.contact_phone && <> · {c.contact_phone}</>}
         {c.contact_email && <> · {c.contact_email}</>}
       </div>
-
+ 
       {c.ai_sensitive && (
         <div style={{ marginTop: 10, padding: "8px 12px", borderRadius: 8, background: "rgba(224,168,140,0.1)", border: "1px solid rgba(224,168,140,0.35)", color: C.amber, fontSize: 12, fontWeight: 500 }}>
           ⚠️ Necesită atenție umană — nu răspunde doar cu sugestia AI, citește cu atenție
         </div>
       )}
-
+ 
       {c.ai_summary && (
         <div style={{ color: "#7FA0C4", fontSize: 12.5, marginTop: 10 }}>
           <strong>Rezumat AI:</strong> {c.ai_summary}
         </div>
       )}
-
+ 
       {sentAt ? (
         <div style={{ color: C.green, fontSize: 12.5, marginTop: 10 }}>✓ Răspuns trimis pe {fmt(sentAt)}</div>
       ) : c.ai_suggested_reply ? (
@@ -1239,13 +1230,13 @@ function ComplaintCard({ complaint: c, onStatus, highlight }: { complaint: Compl
     </div>
   );
 }
-
+ 
 function ManagerDemo({ restaurantName }: { restaurantName: string }) {
   const [complaints, setComplaints] = useState<Complaint[]>(SEED_COMPLAINTS);
   const [granularity, setGranularity] = useState<Granularity>("day");
   const [liveAlert, setLiveAlert] = useState(false);
   const scans = useMemo(() => buildDemoScans(), []);
-
+ 
   useEffect(() => {
     const arrive = setTimeout(() => {
       setComplaints((cs) => [
@@ -1258,17 +1249,17 @@ function ManagerDemo({ restaurantName }: { restaurantName: string }) {
     }, 5000);
     return () => clearTimeout(arrive);
   }, []);
-
+ 
   const setStatus = (id: string, status: ComplaintStatus) =>
     setComplaints((cs) => cs.map((c) => (c.id === id ? { ...c, status } : c)));
-
+ 
   const totalScans = scans.length;
   const positiveScans = scans.filter((s) => s.choice === "positive").length;
   const negativeScans = scans.filter((s) => s.choice === "negative").length;
   const newComplaints = complaints.filter((c) => c.status === "new").length;
   const decided = positiveScans + negativeScans;
   const satisfactionRate = decided > 0 ? Math.round((positiveScans / decided) * 100) : 0;
-
+ 
   const now = Date.now();
   const last7 = scans.filter((s) => now - new Date(s.created_at).getTime() < 7 * dayMs).length;
   const prev7 = scans.filter((s) => {
@@ -1276,10 +1267,10 @@ function ManagerDemo({ restaurantName }: { restaurantName: string }) {
     return age >= 7 * dayMs && age < 14 * dayMs;
   }).length;
   const trend = prev7 > 0 ? { pct: Math.round(Math.abs(((last7 - prev7) / prev7) * 100)), up: last7 >= prev7 } : null;
-
+ 
   const resolvedComplaints = complaints.filter((c) => c.status === "resolved").length;
   const visibleComplaints = complaints.filter((c) => c.status !== "resolved");
-
+ 
   const hourlyData = useMemo(() => {
     const buckets = Array.from({ length: 24 }, (_, h) => ({ hour: h, positive: 0, negative: 0, total: 0 }));
     for (const s of scans) {
@@ -1291,9 +1282,9 @@ function ManagerDemo({ restaurantName }: { restaurantName: string }) {
     }
     return buckets.map((b) => ({ ...b, label: `${pad(b.hour)}:00` }));
   }, [scans]);
-
+ 
   const peakHour = useMemo(() => hourlyData.reduce((m, b) => (b.total > m.total ? b : m), hourlyData[0]!), [hourlyData]);
-
+ 
   const timeSeriesData = useMemo(() => {
     const buckets = emptyBuckets(granularity, WINDOW_SIZE[granularity]);
     const map = new Map(buckets.map((b) => [b.key, { ...b, positive: 0, negative: 0, total: 0 }]));
@@ -1307,7 +1298,7 @@ function ManagerDemo({ restaurantName }: { restaurantName: string }) {
     }
     return Array.from(map.values());
   }, [scans, granularity]);
-
+ 
   const exportCsv = () => {
     const esc = (v: string) => (/[",\n]/.test(v) ? `"${v.replace(/"/g, '""')}"` : v);
     const header = ["Data", "Status", "Mesaj", "Nume contact", "Telefon", "Email"];
@@ -1328,7 +1319,7 @@ function ManagerDemo({ restaurantName }: { restaurantName: string }) {
     a.click();
     URL.revokeObjectURL(url);
   };
-
+ 
   return (
     <div style={{ position: "relative", background: `radial-gradient(ellipse at 50% 0%, #18140F 0%, ${C.bg} 65%)`, border: `1px solid ${C.border}`, borderRadius: 22, padding: "26px 18px", fontFamily: sans }}>
       {liveAlert && (
@@ -1363,7 +1354,7 @@ function ManagerDemo({ restaurantName }: { restaurantName: string }) {
           <h3 style={{ fontFamily: serif, color: C.text, fontSize: 26, fontWeight: 600, margin: 0, letterSpacing: "0.01em" }}>{restaurantName}</h3>
           <button type="button" style={{ ...ghostPill, padding: "7px 14px", fontSize: 12.5 }}>Delogare</button>
         </div>
-
+ 
         {/* satisfacție */}
         <section style={{ ...adminCard, marginBottom: 20, display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 12, position: "relative", overflow: "hidden" }}>
           <div aria-hidden style={{ position: "absolute", inset: 0, background: "radial-gradient(circle at 15% 30%, rgba(198,161,91,0.08), transparent 60%)", pointerEvents: "none" }} />
@@ -1382,7 +1373,7 @@ function ManagerDemo({ restaurantName }: { restaurantName: string }) {
             </div>
           )}
         </section>
-
+ 
         {/* stat cards */}
         <section style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))", gap: 12, marginBottom: 20 }}>
           {[
@@ -1400,7 +1391,7 @@ function ManagerDemo({ restaurantName }: { restaurantName: string }) {
             </div>
           ))}
         </section>
-
+ 
         {/* ore de vârf */}
         <section style={{ ...adminCard, marginBottom: 20 }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 4, flexWrap: "wrap", gap: 8 }}>
@@ -1416,7 +1407,7 @@ function ManagerDemo({ restaurantName }: { restaurantName: string }) {
           </p>
           <StackedBars data={hourlyData} height={170} labelEvery={3} />
         </section>
-
+ 
         {/* scanări în timp */}
         <section style={{ ...adminCard, marginBottom: 20 }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16, flexWrap: "wrap", gap: 10 }}>
@@ -1444,9 +1435,9 @@ function ManagerDemo({ restaurantName }: { restaurantName: string }) {
               ))}
             </div>
           </div>
-
+ 
           <StackedBars data={timeSeriesData} height={190} labelEvery={granularity === "day" ? 4 : 1} />
-
+ 
           <div style={{ overflowX: "auto", marginTop: 16, maxHeight: 220 }}>
             <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 12.5 }}>
               <thead>
@@ -1470,7 +1461,7 @@ function ManagerDemo({ restaurantName }: { restaurantName: string }) {
             </table>
           </div>
         </section>
-
+ 
         {/* setări */}
         <section style={{ ...adminCard, marginBottom: 20 }}>
           <h4 style={adminTitle}>Setări</h4>
@@ -1484,7 +1475,7 @@ function ManagerDemo({ restaurantName }: { restaurantName: string }) {
             manager@restaurantultau.ro <span style={{ color: "#6E6759" }}>— contactează-ne pentru schimbare</span>
           </p>
         </section>
-
+ 
         {/* teme recurente */}
         <section style={{ ...adminCard, marginBottom: 20 }}>
           <div style={{ marginBottom: 18 }}>
@@ -1499,7 +1490,7 @@ function ManagerDemo({ restaurantName }: { restaurantName: string }) {
             ))}
           </div>
         </section>
-
+ 
         {/* reclamații */}
         <section style={adminCard}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", flexWrap: "wrap", gap: 8, marginBottom: 16 }}>
@@ -1528,7 +1519,7 @@ function ManagerDemo({ restaurantName }: { restaurantName: string }) {
     </div>
   );
 }
-
+ 
 const tdStyle: React.CSSProperties = {
   padding: "6px 8px",
   color: C.text,
@@ -1537,15 +1528,15 @@ const tdStyle: React.CSSProperties = {
 /* ------------------------------------------------------------------ */
 /* Pagina                                                              */
 /* ------------------------------------------------------------------ */
-
+ 
 export default function ScanVogueLanding() {
   useReveal();
-
+ 
   const [restaurantName, setRestaurantName] = useState("Numele restaurantului tău");
   const [tab, setTab] = useState<"client" | "manager">("client");
   const [scrollY, setScrollY] = useState(0);
   const [pointer, setPointer] = useState({ x: 0, y: 0 });
-
+ 
   useEffect(() => {
     const onScroll = () => setScrollY(window.scrollY);
     const onMove = (e: MouseEvent) =>
@@ -1557,25 +1548,18 @@ export default function ScanVogueLanding() {
       window.removeEventListener("mousemove", onMove);
     };
   }, []);
-
+ 
   const displayName = restaurantName.trim() || "Numele restaurantului tău";
-
-  const whatsappHref = useMemo(
-    () =>
-      `https://wa.me/${WHATSAPP_NUMBER}?text=` +
-      encodeURIComponent(`Bună! Sunt interesat de ScanVogue pentru ${displayName}. Putem discuta?`),
-    [displayName]
-  );
-
+ 
   const [contactOpen, setContactOpen] = useState(false);
   const openContact = useCallback(() => setContactOpen(true), []);
   const closeContact = useCallback(() => setContactOpen(false), []);
-
-
+ 
+ 
   return (
     <div className="sv-root">
       <style dangerouslySetInnerHTML={{ __html: CSS }} />
-
+ 
       {/* ---------------- NAV ---------------- */}
       <header
         style={{
@@ -1604,7 +1588,7 @@ export default function ScanVogueLanding() {
           </nav>
         </div>
       </header>
-
+ 
       {/* ---------------- HERO ---------------- */}
       <section style={{ position: "relative", minHeight: "100vh", display: "flex", alignItems: "center", padding: "130px 22px 80px", overflow: "hidden" }}>
         <div style={{ position: "absolute", inset: 0, pointerEvents: "none" }}>
@@ -1649,7 +1633,7 @@ export default function ScanVogueLanding() {
             }}
           />
         </div>
-
+ 
         <div className="sv-split" style={{ maxWidth: 1140, margin: "0 auto", position: "relative", width: "100%" }}>
           <div>
             <div style={{ animation: "sv-fadeUp .7s cubic-bezier(.16,1,.3,1) .05s both" }}>
@@ -1699,7 +1683,7 @@ export default function ScanVogueLanding() {
               ))}
             </div>
           </div>
-
+ 
           <div style={{ display: "flex", justifyContent: "center", animation: "sv-fadeUp 1s cubic-bezier(.16,1,.3,1) .35s both" }}>
             <div
               style={{
@@ -1708,12 +1692,29 @@ export default function ScanVogueLanding() {
                 position: "relative",
               }}
             >
-              <ClientDemo restaurantName={displayName} />
+              <Corners inset={-10}>
+                <div
+                  style={{
+                    width: 360,
+                    maxWidth: "100%",
+                    borderRadius: 28,
+                    overflow: "hidden",
+                    border: `1px solid ${C.border}`,
+                    boxShadow: "0 50px 90px -40px rgba(0,0,0,1), inset 0 1px 0 rgba(255,255,255,.06)",
+                  }}
+                >
+                  <img
+                    src="/plate-scanvogue.jpg"
+                    alt={`Plăcuța ScanVogue pentru ${displayName}`}
+                    style={{ display: "block", width: "100%", height: "auto" }}
+                  />
+                </div>
+              </Corners>
             </div>
           </div>
         </div>
       </section>
-
+ 
       {/* ---------------- MARQUEE ---------------- */}
       <div className="sv-marquee" style={{ overflow: "hidden", borderTop: `1px solid ${C.border2}`, borderBottom: `1px solid ${C.border2}`, padding: "14px 0", background: "rgba(255,255,255,.015)" }}>
         <div className="sv-marquee-track">
@@ -1735,7 +1736,7 @@ export default function ScanVogueLanding() {
           ))}
         </div>
       </div>
-
+ 
       {/* ---------------- DOVEZI ---------------- */}
       <Section id="dovezi">
         <div className="sv-reveal" style={{ maxWidth: 720 }}>
@@ -1746,7 +1747,7 @@ export default function ScanVogueLanding() {
             câte una.
           </p>
         </div>
-
+ 
         <div className="sv-grid-3" style={{ marginTop: 44 }}>
           {[
             {
@@ -1795,7 +1796,7 @@ export default function ScanVogueLanding() {
           ))}
         </div>
       </Section>
-
+ 
       {/* ---------------- CUM FUNCȚIONEAZĂ ---------------- */}
       <Section style={{ background: `linear-gradient(180deg, transparent, ${C.bg2} 30%, transparent)` }}>
         <div className="sv-reveal" style={{ maxWidth: 720 }}>
@@ -1820,7 +1821,7 @@ export default function ScanVogueLanding() {
           ))}
         </div>
       </Section>
-
+ 
       {/* ---------------- DEMO ---------------- */}
       <Section id="demo">
         <div className="sv-reveal" style={{ maxWidth: 760 }}>
@@ -1831,7 +1832,7 @@ export default function ScanVogueLanding() {
             răspunsul AI, marchează-o rezolvată. Scrie numele localului tău și tot demo-ul se personalizează instant.
           </p>
         </div>
-
+ 
         <div className="sv-reveal" style={{ display: "flex", flexWrap: "wrap", gap: 12, alignItems: "center", marginTop: 28 }}>
           <label style={{ fontSize: 12, color: C.muted, letterSpacing: ".1em", textTransform: "uppercase" }}>Numele localului</label>
           <input
@@ -1843,12 +1844,12 @@ export default function ScanVogueLanding() {
             aria-label="Numele restaurantului tău"
           />
         </div>
-
+ 
         <div className="sv-reveal" style={{ display: "flex", gap: 8, marginTop: 24, flexWrap: "wrap" }}>
           <button className={`sv-tab ${tab === "client" ? "sv-tab-on" : ""}`} onClick={() => setTab("client")}>Pagina clientului</button>
           <button className={`sv-tab ${tab === "manager" ? "sv-tab-on" : ""}`} onClick={() => setTab("manager")}>Panoul de manager</button>
         </div>
-
+ 
         <div className="sv-reveal" style={{ marginTop: 26 }}>
           {tab === "client" ? (
             <div className="sv-split" style={{ alignItems: "center" }}>
@@ -1891,7 +1892,7 @@ export default function ScanVogueLanding() {
           )}
         </div>
       </Section>
-
+ 
       {/* ---------------- BENEFICII ---------------- */}
       <Section style={{ background: `linear-gradient(180deg, transparent, ${C.bg2} 40%, transparent)` }}>
         <div className="sv-grid-3">
@@ -1910,7 +1911,7 @@ export default function ScanVogueLanding() {
           ))}
         </div>
       </Section>
-
+ 
       {/* ---------------- PREȚ / CTA ---------------- */}
       <Section id="pret">
         <div className="sv-reveal" style={{ textAlign: "center", maxWidth: 680, margin: "0 auto" }}>
@@ -1921,7 +1922,7 @@ export default function ScanVogueLanding() {
             săptămână. Dacă nu, îl oprești oricând.
           </p>
         </div>
-
+ 
         <div className="sv-reveal" style={{ maxWidth: 560, margin: "44px auto 0" }}>
           <Corners inset={-10}>
             <div className="sv-card" style={{ padding: 34, textAlign: "center", background: "linear-gradient(160deg, rgba(198,161,91,.07), rgba(22,19,15,.85))" }}>
@@ -1933,7 +1934,7 @@ export default function ScanVogueLanding() {
                 <span style={{ fontSize: 15, color: C.muted, paddingBottom: 10 }}>lei / lună</span>
               </div>
               <div style={{ fontSize: 12, color: C.muted, marginTop: 6 }}>fără contract pe termen lung · prima lună de probă</div>
-
+ 
               <div style={{ borderTop: `1px solid ${C.border2}`, margin: "24px 0", paddingTop: 22, textAlign: "left", display: "flex", flexDirection: "column", gap: 11 }}>
                 {[
                   "Pagină de scanare personalizată cu brandul tău",
@@ -1949,25 +1950,21 @@ export default function ScanVogueLanding() {
                   </div>
                 ))}
               </div>
-
-              <div style={{ display: "flex", flexWrap: "wrap", gap: 10, justifyContent: "center" }}>
-                <button type="button" className="sv-btn sv-btn-primary" onClick={openContact} style={{ flex: "1 1 190px" }}>
+ 
+              <div style={{ display: "flex", justifyContent: "center" }}>
+                <button type="button" className="sv-btn sv-btn-primary" onClick={openContact} style={{ minWidth: 220 }}>
                   <Ic.mail /> Contactează-ne
                 </button>
-                <a className="sv-btn sv-btn-ghost" href={whatsappHref} target="_blank" rel="noopener noreferrer" style={{ flex: "1 1 190px" }}>
-                  <Ic.msg /> WhatsApp 0786 042 404
-                </a>
               </div>
               <p style={{ fontSize: 11.5, color: "#6E6759", margin: "16px 0 0" }}>
                 Butonul deschide un formular scurt — mesajul ajunge direct pe{" "}
                 <a href={`mailto:${SALES_EMAIL}`} style={{ color: C.gold, textDecoration: "none" }}>{SALES_EMAIL}</a>.
-                Preferi WhatsApp? Scrie-ne la 0786 042 404.
               </p>
             </div>
           </Corners>
         </div>
       </Section>
-
+ 
       {/* ---------------- FAQ ---------------- */}
       <Section>
         <div className="sv-reveal" style={{ maxWidth: 720, margin: "0 auto" }}>
@@ -1991,7 +1988,7 @@ export default function ScanVogueLanding() {
           </div>
         </div>
       </Section>
-
+ 
       {/* ---------------- FINAL CTA ---------------- */}
       <Section style={{ paddingTop: 0 }}>
         <div className="sv-reveal" style={{ position: "relative", overflow: "hidden", borderRadius: 26, border: `1px solid ${C.border}`, padding: "clamp(40px, 6vw, 74px) 26px", textAlign: "center", background: "radial-gradient(120% 140% at 50% 0%, rgba(198,161,91,.12), rgba(16,14,11,.9) 62%)" }}>
@@ -2005,14 +2002,13 @@ export default function ScanVogueLanding() {
             <p className="sv-lead" style={{ margin: "16px auto 0", textAlign: "center" }}>
               Pornim {displayName} în 24 de ore. Scrie-ne și îți trimitem QR-urile.
             </p>
-            <div style={{ display: "flex", flexWrap: "wrap", gap: 12, justifyContent: "center", marginTop: 30 }}>
+            <div style={{ display: "flex", justifyContent: "center", marginTop: 30 }}>
               <button type="button" className="sv-btn sv-btn-primary" onClick={openContact}><Ic.mail /> Contactează-ne</button>
-              <a className="sv-btn sv-btn-ghost" href={whatsappHref} target="_blank" rel="noopener noreferrer"><Ic.msg /> WhatsApp 0786 042 404</a>
             </div>
           </div>
         </div>
       </Section>
-
+ 
       {/* ---------------- FOOTER ---------------- */}
       <footer style={{ borderTop: `1px solid ${C.border2}`, padding: "30px 22px 46px" }}>
         <div style={{ maxWidth: 1140, margin: "0 auto", display: "flex", flexWrap: "wrap", gap: 16, justifyContent: "space-between", alignItems: "center" }}>
@@ -2021,12 +2017,11 @@ export default function ScanVogueLanding() {
           <a className="sv-link" href={`mailto:${SALES_EMAIL}`}>{SALES_EMAIL}</a>
         </div>
       </footer>
-
+ 
       <ContactModal
         open={contactOpen}
         onClose={closeContact}
         restaurantName={displayName}
-        whatsappHref={whatsappHref}
       />
     </div>
   );
