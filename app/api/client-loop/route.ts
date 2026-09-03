@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase";
 import { resend } from "@/lib/resend";
 import { computeOutcomeForResolution } from "@/lib/theme-resolution";
+import { composeResolutionEmail } from "@/lib/complaint-ai";
 import { wrapEmailHtml, paragraphHtml, signatureHtml } from "@/lib/email-html";
 
 // Inchide bucla catre CLIENT, nu doar catre proprietar: daca o tema marcata
@@ -9,6 +10,11 @@ import { wrapEmailHtml, paragraphHtml, signatureHtml } from "@/lib/email-html";
 // declarata de restaurant), anuntam automat clientii care s-au plans exact
 // de asta, inainte de remediu. Trimitem o singura data per rezolvare
 // (coloana customers_notified_at), niciodata daca statusul nu e "improved".
+//
+// Mesajul catre client e compus de AI (foloseste nota managerului daca
+// exista, dar nota ramane optionala -- fara ea, AI-ul ramane general si nu
+// inventeaza detalii). Daca AI-ul esueaza din orice motiv, cade inapoi pe
+// sablonul fix -- trimiterea nu se opreste niciodata din cauza unei erori AI.
 //
 // Declansata de un GitHub Action, protejata printr-un secret dedicat.
 export async function POST(req: Request) {
@@ -95,19 +101,31 @@ export async function POST(req: Request) {
       const fromAddressMatch = fromEnv.match(/<(.+)>/);
       const fromAddress = fromAddressMatch ? fromAddressMatch[1] : fromEnv;
 
+      // Compus o singura data per rezolvare (acelasi mesaj pentru toti
+      // clientii afectati de aceasta tema) -- nu per client, ca sa nu
+      // multiplicam inutil apelurile catre AI.
+      const aiMessage = await composeResolutionEmail({
+        theme: resolution.theme,
+        deltaPct: outcome.deltaPct ?? 0,
+        note: resolution.note,
+      });
+
+      const fallbackLine = `Ne-ai scris despre „${resolution.theme}” — între timp am schimbat ceva, și chiar a mers: de atunci avem cu ${Math.abs(outcome.deltaPct ?? 0)}% mai puține cazuri din astea.`;
+      const improvementLine = aiMessage ?? fallbackLine;
+
       let sentCount = 0;
       for (const customer of uniqueByEmail.values()) {
         const displayName = customer.contact_name
           ? customer.contact_name.trim().replace(/^\p{L}/u, (c: string) => c.toLocaleUpperCase("ro-RO"))
           : null;
 
-        const improvementLine = `Ne-ai scris despre „${resolution.theme}” — între timp am schimbat ceva, și chiar a mers: de atunci avem cu ${Math.abs(outcome.deltaPct ?? 0)}% mai puține cazuri din astea.`;
-
         const bodyParts = [
           paragraphHtml(displayName ? `Bună ${displayName},` : "Bună,"),
           paragraphHtml(improvementLine),
         ];
-        if (resolution.note?.trim()) {
+        // Nota se afiseaza separat DOAR cand AI-ul nu a reusit sa o integreze
+        // deja natural in mesaj (adica atunci cand am cazut pe fallback).
+        if (!aiMessage && resolution.note?.trim()) {
           bodyParts.push(paragraphHtml(resolution.note.trim(), "#9C9382"));
         }
         bodyParts.push(paragraphHtml("Mulțumim că ne-ai spus — ne-a ajutat să vedem exact ce trebuia reparat."));
@@ -123,7 +141,7 @@ export async function POST(req: Request) {
             displayName ? `Bună ${displayName},` : "Bună,",
             "",
             improvementLine,
-            resolution.note?.trim() ? `\n${resolution.note.trim()}` : "",
+            !aiMessage && resolution.note?.trim() ? `\n${resolution.note.trim()}` : "",
             "",
             "Mulțumim că ne-ai spus — ne-a ajutat să vedem exact ce trebuia reparat.",
             "",
