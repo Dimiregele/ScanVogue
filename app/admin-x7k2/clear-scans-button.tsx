@@ -20,7 +20,16 @@ export default function ClearScansButton({
 
   const handleConfirm = () => {
     if (confirmText.trim().toUpperCase() !== "ȘTERGE") return;
-    startTransition(() => clearRestaurantScans(restaurantId));
+    startTransition(async () => {
+      try {
+        await clearRestaurantScans(restaurantId);
+        setOpen(false);
+        setConfirmText("");
+      } catch (err) {
+        console.error("Nu am putut șterge scanările:", err);
+        window.alert("Ceva nu a mers bine la ștergere. Încearcă din nou.");
+      }
+    });
   };
 
   return (
