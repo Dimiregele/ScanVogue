@@ -24,7 +24,16 @@ export default function ClearAllButton({
 
   const handleConfirm = () => {
     if (confirmText.trim().toUpperCase() !== CONFIRM_PHRASE) return;
-    startTransition(() => clearRestaurantEverything(restaurantId));
+    startTransition(async () => {
+      try {
+        await clearRestaurantEverything(restaurantId);
+        setOpen(false);
+        setConfirmText("");
+      } catch (err) {
+        console.error("Nu am putut reseta restaurantul:", err);
+        window.alert("Ceva nu a mers bine la resetare. Încearcă din nou.");
+      }
+    });
   };
 
   return (
