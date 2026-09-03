@@ -26,9 +26,18 @@ export default async function OwnerPanel() {
   // logat impotriva restaurants.alert_email -- nu exista pas separat de
   // asociere manuala. Daca emailul contului nu se potriveste cu niciun
   // alert_email, query-ul de mai jos nu intoarce niciun rand (nu eroare).
+  //
+  // IMPORTANT: filtram explicit dupa alert_email == emailul userului logat.
+  // Fara acest filtru, un cont care e SI admin (vede toate restaurantele
+  // prin RLS) primeste mai multe randuri la acest query, iar .maybeSingle()
+  // arunca eroare ("multiple rows returned") care e inghitita silentios --
+  // rezultatul e `restaurant: null`, deci ecranul arata gresit mesajul
+  // "acest cont nu este asociat niciunui restaurant" chiar si pentru
+  // proprietarul de drept.
   const { data: restaurant } = await supabase
     .from("restaurants")
     .select("id, name, slug, alert_email, google_review_url")
+    .ilike("alert_email", user.email ?? "")
     .maybeSingle();
 
   if (!restaurant) {
