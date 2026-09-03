@@ -5,6 +5,7 @@ import { createRestaurant, signOut } from "./actions";
 import ToggleActiveButton from "./toggle-active-button";
 import ClearScansButton from "./clear-scans-button";
 import ClearAllButton from "./clear-all-button";
+import DeleteRestaurantButton from "./delete-restaurant-button";
 import { ADMIN_COLORS, ADMIN_GLOBAL_CSS, AdminEmbers, adminSectionTitleStyle } from "../_shared/decor";
 import AnimatedNumber from "../_shared/animated-number";
 
@@ -159,6 +160,7 @@ export default async function AdminHome() {
                       scanCount={scanCounts.get(r.id) ?? 0}
                       complaintCount={complaintCounts.get(r.id) ?? 0}
                     />
+                    <DeleteRestaurantButton restaurantId={r.id} name={r.name} />
                   </div>
                 </div>
               ))}
