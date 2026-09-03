@@ -1,6 +1,7 @@
 "use server";
 
 import { redirect } from "next/navigation";
+import { revalidatePath } from "next/cache";
 import { getServerClient } from "@/lib/supabase-server";
 import { supabaseAdmin } from "@/lib/supabase";
 
@@ -81,7 +82,7 @@ export async function toggleRestaurantActive(restaurantId: string, newValue: boo
     .eq("id", restaurantId);
 
   if (error) throw error;
-  redirect("/admin-x7k2");
+  revalidatePath("/admin-x7k2");
 }
 
 // Sterge definitiv toate scanarile unui restaurant (util pentru curatarea
@@ -94,7 +95,7 @@ export async function clearRestaurantScans(restaurantId: string) {
   const { error } = await supabase.from("scans").delete().eq("restaurant_id", restaurantId);
 
   if (error) throw error;
-  redirect("/admin-x7k2");
+  revalidatePath("/admin-x7k2");
 }
 
 // Reseteaza COMPLET un restaurant la starea "cont nou" -- sterge atat
@@ -109,7 +110,21 @@ export async function clearRestaurantEverything(restaurantId: string) {
   const { error: complaintsError } = await supabase.from("complaints").delete().eq("restaurant_id", restaurantId);
   if (complaintsError) throw complaintsError;
 
-  redirect("/admin-x7k2");
+  revalidatePath("/admin-x7k2");
+}
+
+// Sterge DEFINITIV restaurantul insusi -- nu doar datele lui. Toate tabelele
+// legate (scans, complaints, theme_snapshots, theme_resolutions,
+// restaurant_users) au ON DELETE CASCADE pe restaurant_id, deci un singur
+// delete pe restaurants sterge automat tot ce tine de el. Nu sterge insa
+// contul de Supabase Auth al proprietarului (alert_email) -- acela poate
+// fi shared cu alt restaurant al aceluiasi proprietar, deci il lasam intact.
+export async function deleteRestaurant(restaurantId: string) {
+  const supabase = await getServerClient();
+  const { error } = await supabase.from("restaurants").delete().eq("id", restaurantId);
+
+  if (error) throw error;
+  revalidatePath("/admin-x7k2");
 }
 
 export async function signOut() {
