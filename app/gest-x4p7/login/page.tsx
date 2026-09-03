@@ -82,6 +82,7 @@ export default function OwnerLoginPage() {
             onSubmit={step === "email" ? handleSendCode : handleVerifyCode}
             style={{
               width: "100%",
+              boxSizing: "border-box",
               background: ADMIN_COLORS.card,
               backdropFilter: "blur(18px)",
               WebkitBackdropFilter: "blur(18px)",
