@@ -25,8 +25,13 @@ export default function ToggleActiveButton({
     );
 
     if (confirmat) {
-      startTransition(() => {
-        toggleRestaurantActive(restaurantId, !isActive);
+      startTransition(async () => {
+        try {
+          await toggleRestaurantActive(restaurantId, !isActive);
+        } catch (err) {
+          console.error("Nu am putut schimba starea restaurantului:", err);
+          window.alert("Ceva nu a mers bine la schimbarea stării. Încearcă din nou.");
+        }
       });
     }
   };
