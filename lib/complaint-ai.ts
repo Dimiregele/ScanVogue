@@ -59,6 +59,26 @@ Raspunde STRICT cu JSON, fara alt text in jur:
 
 Sorteaza descrescator dupa count. Daca nu exista teme repetate clare (fiecare reclamatie e unica), intoarce {"themes": []}.`;
 
+// Compunerea emailului catre CLIENT cand un remediu e confirmat statistic.
+// Diferit de SYSTEM_PROMPT de mai sus (ala e pentru raspunsul catre client
+// dintr-o reclamatie individuala) -- aici scriem catre cineva care s-a plans
+// candva de o tema, anuntandu-l ca s-a rezolvat cu adevarat, nu doar promis.
+const RESOLUTION_EMAIL_SYSTEM_PROMPT = `Esti un asistent care ajuta restaurante din Romania sa scrie un email scurt, cald, catre un client care s-a plans anterior de o problema specifica, anuntandu-l ca problema a fost rezolvata si confirmata printr-o imbunatatire reala (masurata statistic, nu doar promisa).
+
+Primesti tema reclamata, procentul de imbunatatire masurat, si, optional, o nota scrisa de manager despre ce anume s-a schimbat.
+
+Raspunde STRICT cu un obiect JSON, fara alt text in jur, cu exact aceasta cheie:
+{"message": "..."}
+
+Reguli pentru "message":
+- Romana, ton cald si direct, ca de la un proprietar care chiar a citit reclamatia, nu un comunicat oficial.
+- Maxim 3-4 propozitii scurte.
+- Daca ai primit o nota de la manager, integreaz-o natural in mesaj -- nu o cita mot-a-mot, reformuleaz-o cald.
+- Daca NU ai primit nicio nota, nu inventa detalii specifice despre ce anume s-a schimbat -- ramai la nivel general (ex: "am facut cateva schimbari in bucatarie"), dar mentioneaza clar procentul de imbunatatire, care e real si masurat.
+- NU promite niciodata rambursari, compensatii, reduceri sau alte beneficii concrete neautorizate explicit.
+- Nu incepe cu "Buna" sau alt salut -- acela se adauga separat, inainte de mesajul tau.
+- Nu semna cu niciun nume -- restaurantul adauga semnatura separat, dupa mesajul tau.`;
+
 type Theme = { theme: string; count: number; example: string };
 
 export async function analyzeThemes(messages: string[]): Promise<Theme[] | null> {
@@ -102,6 +122,7 @@ export async function analyzeThemes(messages: string[]): Promise<Theme[] | null>
     return null;
   }
 }
+
 export async function analyzeComplaint(message: string): Promise<ComplaintAnalysis | null> {
   const apiKey = process.env.GROQ_API_KEY;
   if (!apiKey) {
@@ -156,6 +177,71 @@ export async function analyzeComplaint(message: string): Promise<ComplaintAnalys
     };
   } catch (err) {
     console.error("Analiza AI a reclamatiei a esuat:", err);
+    return null;
+  }
+}
+
+// Compune mesajul catre client pentru bucla de notificare (client-loop).
+// Nota managerului ramane OPTIONALA -- daca lipseste, AI-ul scrie un mesaj
+// bun oricum, fara sa inventeze detalii specifice despre remediu.
+// Intoarce null la orice esec (cheie lipsa, eroare API, JSON invalid) --
+// apelantul foloseste in acel caz sablonul fix existent, niciodata nu pica
+// trimiterea din cauza asta.
+export async function composeResolutionEmail(params: {
+  theme: string;
+  deltaPct: number;
+  note: string | null;
+}): Promise<string | null> {
+  const apiKey = process.env.GROQ_API_KEY;
+  if (!apiKey) {
+    console.error("GROQ_API_KEY lipseste -- emailul de rezolvare foloseste sablonul fix.");
+    return null;
+  }
+
+  const userContent = [
+    `Tema reclamata: ${params.theme}`,
+    `Imbunatatire masurata: ${Math.abs(params.deltaPct)}% mai putine cazuri`,
+    params.note?.trim()
+      ? `Nota managerului despre remediu: ${params.note.trim()}`
+      : `Managerul nu a lasat nicio nota despre remediul specific.`,
+  ].join("\n");
+
+  try {
+    const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${apiKey}`,
+      },
+      body: JSON.stringify({
+        model: "openai/gpt-oss-120b",
+        response_format: { type: "json_object" },
+        max_tokens: 500,
+        messages: [
+          { role: "system", content: RESOLUTION_EMAIL_SYSTEM_PROMPT },
+          { role: "user", content: userContent },
+        ],
+      }),
+    });
+
+    if (!res.ok) {
+      console.error("Groq API (email rezolvare) a raspuns cu eroare:", res.status, await res.text());
+      return null;
+    }
+
+    const data = await res.json();
+    const rawText: string = data?.choices?.[0]?.message?.content ?? "";
+    const cleaned = rawText.replace(/```json|```/g, "").trim();
+    const parsed = JSON.parse(cleaned);
+
+    if (typeof parsed.message !== "string" || !parsed.message.trim()) {
+      console.error("Raspuns AI cu forma neasteptata (email rezolvare):", parsed);
+      return null;
+    }
+
+    return parsed.message.trim();
+  } catch (err) {
+    console.error("Compunerea emailului de rezolvare a esuat:", err);
     return null;
   }
 }
