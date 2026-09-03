@@ -54,6 +54,7 @@ export default function LoginPage() {
             onSubmit={handleSubmit}
             style={{
               width: "100%",
+              boxSizing: "border-box",
               background: ADMIN_COLORS.card,
               backdropFilter: "blur(18px)",
               WebkitBackdropFilter: "blur(18px)",
