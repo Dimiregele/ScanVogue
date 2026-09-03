@@ -52,6 +52,7 @@ const GLOBAL_CSS = `
    ca fallback -- browserele care nu inteleg "dvh" il ignora si raman cu 100vh,
    in loc sa ramana fara nicio inaltime minima (ceea ce rupea centrarea). */
 .onyx-viewport {
+  box-sizing: border-box;
   min-height: 100vh;
   min-height: 100dvh;
   padding: 24px;
