@@ -18,8 +18,13 @@ export default function GoogleUrlSetting({
     e.preventDefault();
     setSaved(false);
     startTransition(async () => {
-      await updateGoogleReviewUrl(restaurantId, url);
-      setSaved(true);
+      try {
+        await updateGoogleReviewUrl(restaurantId, url);
+        setSaved(true);
+      } catch (err) {
+        console.error("Nu am putut salva linkul Google Reviews:", err);
+        window.alert("Ceva nu a mers bine la salvare. Încearcă din nou.");
+      }
     });
   };
 
