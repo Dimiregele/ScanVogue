@@ -21,8 +21,6 @@ export default async function ScanPage({
 
   // Slug inexistent -> 404 normal (nu exista asa un restaurant)
   if (error || !restaurant) {
-    console.error("DEBUG - eroare la cautarea restaurantului:", JSON.stringify(error, null, 2));
-    console.error("DEBUG - slug cautat:", slug);
     notFound();
   }
 
