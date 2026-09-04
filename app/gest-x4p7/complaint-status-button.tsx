@@ -31,7 +31,16 @@ export default function ComplaintStatusButton({
     <button
       type="button"
       disabled={isPending}
-      onClick={() => startTransition(() => updateComplaintStatus(complaintId, nextStatus))}
+      onClick={() =>
+        startTransition(async () => {
+          try {
+            await updateComplaintStatus(complaintId, nextStatus);
+          } catch (err) {
+            console.error("Nu am putut schimba statusul reclamației:", err);
+            window.alert("Ceva nu a mers bine. Încearcă din nou.");
+          }
+        })
+      }
       style={{
         fontSize: 11,
         padding: "5px 10px",
