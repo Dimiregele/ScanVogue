@@ -155,12 +155,19 @@ export async function POST(req: Request) {
         if (!sendError) sentCount++;
       }
 
-      const { error: updateError } = await supabaseAdmin
-        .from("theme_resolutions")
-        .update({ customers_notified_at: new Date().toISOString() })
-        .eq("id", resolution.id);
+      // Marcam "notificat" doar daca n-a fost nimeni de anuntat, sau daca a
+      // reusit macar un email -- daca AU EXISTAT clienti de anuntat dar TOATE
+      // trimiterile au esuat (ex: o pana de moment la Resend), lasam randul
+      // nenotificat ca sa fie reincercat automat la urmatoarea rulare, in loc
+      // sa renuntam definitiv la o notificare care nu a ajuns nicaieri.
+      if (uniqueByEmail.size === 0 || sentCount > 0) {
+        const { error: updateError } = await supabaseAdmin
+          .from("theme_resolutions")
+          .update({ customers_notified_at: new Date().toISOString() })
+          .eq("id", resolution.id);
 
-      if (updateError) throw updateError;
+        if (updateError) throw updateError;
+      }
 
       results.push({ resolutionId: resolution.id, theme: resolution.theme, status: "improved", customersNotified: sentCount });
     } catch (err) {
