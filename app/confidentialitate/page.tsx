@@ -34,6 +34,7 @@ export default function PrivacyPolicyPage() {
       style={{
         minHeight: "100vh",
         width: "100%",
+        boxSizing: "border-box",
         padding: "48px 20px",
         background: `radial-gradient(ellipse at 50% 0%, ${COLORS.bgRadial} 0%, ${COLORS.bg} 65%)`,
         fontFamily: "'Inter', system-ui, sans-serif",
