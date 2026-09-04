@@ -22,6 +22,30 @@ export function timeBucket(hour: number): string {
   return "noaptea";
 }
 
+// created_at e stocat in UTC, dar serverul (Netlify) ruleaza tot in UTC --
+// fara asta, "getDay()"/"getHours()" ar da ziua/ora din UTC, nu din Romania,
+// deci un tipar precum "mai ales vineri seara" ar putea iesi decalat cu
+// 2-3 ore (si, langa miezul noptii, chiar pe ziua gresita).
+const BUCHAREST_WEEKDAY_INDEX: Record<string, number> = {
+  Sun: 0, Mon: 1, Tue: 2, Wed: 3, Thu: 4, Fri: 5, Sat: 6,
+};
+
+function bucharestDayAndHour(date: Date): { day: number; hour: number } {
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone: "Europe/Bucharest",
+    weekday: "short",
+    hour: "numeric",
+    hour12: false,
+  }).formatToParts(date);
+
+  const weekday = parts.find((p) => p.type === "weekday")?.value ?? "Sun";
+  const hourRaw = Number(parts.find((p) => p.type === "hour")?.value ?? "0");
+  // Intl poate reda miezul noptii ca "24" in loc de "0", in functie de motor.
+  const hour = hourRaw === 24 ? 0 : hourRaw;
+
+  return { day: BUCHAREST_WEEKDAY_INDEX[weekday] ?? 0, hour };
+}
+
 export type ThemeStat = {
   theme: string;
   count: number;
@@ -52,7 +76,8 @@ export function computeThemeStats(rows: ThemedComplaintRow[], limit: number = 5)
         // corect forma adverbiala mai jos ("lunea", nu derivata din "Luni").
         const bucketCounts = new Map<string, number>();
         for (const d of dates) {
-          const key = `${d.getDay()}|${timeBucket(d.getHours())}`;
+          const { day, hour } = bucharestDayAndHour(d);
+          const key = `${day}|${timeBucket(hour)}`;
           bucketCounts.set(key, (bucketCounts.get(key) ?? 0) + 1);
         }
         const [topKey, topCount] = Array.from(bucketCounts.entries()).sort((a, b) => b[1] - a[1])[0];
