@@ -55,7 +55,9 @@ export async function POST(req: Request) {
             ? "Același număr de reclamații ca luna trecută."
             : report.trendDeltaPct < 0
               ? `Cu ${Math.abs(report.trendDeltaPct)}% mai puține reclamații față de luna trecută.`
-              : `Cu ${report.trendDeltaPct}% mai multe reclamații față de luna trecută.`;      const bodySections = [
+              : `Cu ${report.trendDeltaPct}% mai multe reclamații față de luna trecută.`;
+
+      const bodySections = [
         restaurantHeaderHtml(restaurant.name),
         mutedTextHtml(`Raport pentru perioada ${report.periodLabel}.`),
         statsRowHtml([
