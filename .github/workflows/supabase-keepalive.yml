@@ -27,4 +27,4 @@ jobs:
             exit 1
           fi
         env:
-          SUPABASE_ANON_KEY: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRrcWRzZWVlYnVibnN3bnBlZW95Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUzOTM5NjIsImV4cCI6MjA5MDk2OTk2Mn0.lh6YfME74KsaYP6O3N2yxQNtCsEt45s0I1oWTZ8kaQo
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
