@@ -3,6 +3,7 @@ import { supabaseAdmin } from "@/lib/supabase";
 import { resend } from "@/lib/resend";
 import { computeThemeStats } from "@/lib/theme-analysis";
 import { getLatestResolutionOutcome, resolutionOutcomeLabel } from "@/lib/theme-resolution";
+import { mapWithConcurrency } from "@/lib/concurrency";
 import {
   wrapEmailHtml,
   restaurantHeaderHtml,
@@ -18,6 +19,14 @@ import {
 // destule date pentru un tipar real, nu doar 7 zile (prea putin, aproape
 // mereu "nicio tema clara").
 const ANALYSIS_WINDOW_DAYS = 30;
+
+// Cate restaurante procesam simultan. Nu prea mare (risc de rate-limit la
+// Resend), nu prea mic (la sute/mii de restaurante, secvential ar depasi
+// limita de executie a functiei). 15 e un compromis rezonabil, usor de
+// ajustat aici daca vreodata devine nevoie.
+const CONCURRENCY = 15;
+
+type Result = { restaurantId: string; sent: boolean; themesFound: number; error?: string };
 
 // Declansata saptamanal de un GitHub Action, NU de useri -- protejata printr-un
 // secret dedicat (diferit de cel al raportului lunar), ca sa limitam ce se
@@ -40,9 +49,7 @@ export async function POST(req: Request) {
   const windowStart = new Date();
   windowStart.setDate(windowStart.getDate() - ANALYSIS_WINDOW_DAYS);
 
-  const results: { restaurantId: string; sent: boolean; themesFound: number; error?: string }[] = [];
-
-  for (const restaurant of restaurants ?? []) {
+  async function processRestaurant(restaurant: { id: string; name: string; alert_email: string | null }): Promise<Result> {
     try {
       const { count: totalScans } = await supabaseAdmin
         .from("scans")
@@ -53,8 +60,7 @@ export async function POST(req: Request) {
       // Fara scanari in fereastra -- probabil plaqueta nu e inca folosita,
       // nu are sens sa calculam sau sa trimitem nimic.
       if (!totalScans || totalScans === 0) {
-        results.push({ restaurantId: restaurant.id, sent: false, themesFound: 0, error: "fara scanari in perioada" });
-        continue;
+        return { restaurantId: restaurant.id, sent: false, themesFound: 0, error: "fara scanari in perioada" };
       }
 
       const { data: complaints, error: complaintsError } = await supabaseAdmin
@@ -78,16 +84,14 @@ export async function POST(req: Request) {
       if (insertError) throw insertError;
 
       if (!restaurant.alert_email) {
-        results.push({ restaurantId: restaurant.id, sent: false, themesFound: themes.length, error: "fara alert_email" });
-        continue;
+        return { restaurantId: restaurant.id, sent: false, themesFound: themes.length, error: "fara alert_email" };
       }
 
       // Fara teme clare -- nu trimitem email saptamanal gol, ca sa nu devina
       // zgomot pe care proprietarul invata sa-l ignore. Instantaneul tot s-a
       // salvat mai sus, deci dashboard-ul reflecta oricum starea curenta.
       if (themes.length === 0) {
-        results.push({ restaurantId: restaurant.id, sent: false, themesFound: 0, error: "nicio tema clara -- fara email" });
-        continue;
+        return { restaurantId: restaurant.id, sent: false, themesFound: 0, error: "nicio tema clara -- fara email" };
       }
 
       const themesWithOutcomes = await Promise.all(
@@ -121,12 +125,14 @@ export async function POST(req: Request) {
       });
 
       if (sendError) throw sendError;
-      results.push({ restaurantId: restaurant.id, sent: true, themesFound: themes.length });
+      return { restaurantId: restaurant.id, sent: true, themesFound: themes.length };
     } catch (err) {
       console.error(`Analiza saptamanala esuata pentru ${restaurant.id}:`, err);
-      results.push({ restaurantId: restaurant.id, sent: false, themesFound: 0, error: String(err) });
+      return { restaurantId: restaurant.id, sent: false, themesFound: 0, error: String(err) };
     }
   }
+
+  const results = await mapWithConcurrency(restaurants ?? [], CONCURRENCY, processRestaurant);
 
   return NextResponse.json({ results });
 }
