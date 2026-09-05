@@ -79,11 +79,11 @@ export async function POST(request: NextRequest) {
     if (!response.ok) {
       const body = await response.text();
       console.error(`Resend request failed [${response.status}]: ${body}`);
-      return NextResponse.json({ error: "Emailul nu a putut fi trimis. Încearcă WhatsApp." }, { status: 502 });
+      return NextResponse.json({ error: "Emailul nu a putut fi trimis. Încearcă din nou sau scrie direct la scanvogue@gmail.com." }, { status: 502 });
     }
   } catch (error) {
     console.error(error);
-    return NextResponse.json({ error: "Emailul nu a putut fi trimis. Încearcă WhatsApp." }, { status: 502 });
+    return NextResponse.json({ error: "Emailul nu a putut fi trimis. Încearcă din nou sau scrie direct la scanvogue@gmail.com." }, { status: 502 });
   }
 
   return NextResponse.json({ ok: true }, { status: 200 });
