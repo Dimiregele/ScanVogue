@@ -216,7 +216,7 @@ export async function composeResolutionEmail(params: {
       body: JSON.stringify({
         model: "openai/gpt-oss-120b",
         response_format: { type: "json_object" },
-        max_tokens: 500,
+        max_tokens: 1200,
         messages: [
           { role: "system", content: RESOLUTION_EMAIL_SYSTEM_PROMPT },
           { role: "user", content: userContent },
