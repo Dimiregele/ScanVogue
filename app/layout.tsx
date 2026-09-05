@@ -1,4 +1,3 @@
-
 import type { Metadata, Viewport } from "next";
  
 export const metadata: Metadata = {
@@ -31,6 +30,9 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "ScanVogue — Gestionare recenzii pentru restaurante",
     description: "Recenziile bune ajung pe Google. Cele proaste ajung la tine.",
+  },
+  verification: {
+    google: "qzMeq0hQqRHWJpGwC3fk2rXiHS23eQbTlW8E_sCUWvY",
   },
 };
  
