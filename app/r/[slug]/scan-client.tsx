@@ -74,10 +74,14 @@ type Restaurant = {
 async function updateScan(scanId: string | null, body: Record<string, unknown>) {
   if (!scanId) return;
   try {
+    // keepalive: true — esențial la alegerea "pozitiv", unde pagina navighează
+    // spre Google la scurt timp după acest request. Fără el, browserul poate
+    // anula PATCH-ul în timpul navigării și pierdem scanarea din statistici.
     await fetch("/api/scan", {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ scanId, ...body }),
+      keepalive: true,
     });
   } catch (err) {
     console.error("Nu am putut actualiza scanarea:", err);
