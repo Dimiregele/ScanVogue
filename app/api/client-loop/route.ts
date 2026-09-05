@@ -3,7 +3,14 @@ import { supabaseAdmin } from "@/lib/supabase";
 import { resend } from "@/lib/resend";
 import { computeOutcomeForResolution } from "@/lib/theme-resolution";
 import { composeResolutionEmail } from "@/lib/complaint-ai";
+import { mapWithConcurrency } from "@/lib/concurrency";
 import { wrapEmailHtml, paragraphHtml, signatureHtml } from "@/lib/email-html";
+
+// Cate rezolvari procesam simultan (fiecare poate insemna un apel AI + unul
+// sau mai multe emailuri). Vezi nota din weekly-themes -- acelasi motiv.
+const CONCURRENCY = 15;
+
+type Result = { resolutionId: string; theme: string; status: string; customersNotified: number; error?: string };
 
 // Inchide bucla catre CLIENT, nu doar catre proprietar: daca o tema marcata
 // "rezolvata" arata o imbunatatire REALA (confirmata statistic, nu doar
@@ -46,9 +53,7 @@ export async function POST(req: Request) {
     return true;
   });
 
-  const results: { resolutionId: string; theme: string; status: string; customersNotified: number; error?: string }[] = [];
-
-  for (const resolution of latestPerThemeRestaurant) {
+  async function processResolution(resolution: (typeof latestPerThemeRestaurant)[number]): Promise<Result> {
     try {
       const outcome = await computeOutcomeForResolution(
         resolution.restaurant_id,
@@ -63,8 +68,7 @@ export async function POST(req: Request) {
       // sau "worsened". Randul ramane nenotificat si va fi reevaluat automat
       // la urmatoarea rulare (fara cost, e doar o interogare in baza de date).
       if (outcome.status !== "improved") {
-        results.push({ resolutionId: resolution.id, theme: resolution.theme, status: outcome.status, customersNotified: 0 });
-        continue;
+        return { resolutionId: resolution.id, theme: resolution.theme, status: outcome.status, customersNotified: 0 };
       }
 
       const { data: restaurant } = await supabaseAdmin
@@ -114,6 +118,10 @@ export async function POST(req: Request) {
       const improvementLine = aiMessage ?? fallbackLine;
 
       let sentCount = 0;
+      // Ramane secvential intentionat -- clientii afectati de O singura
+      // tema, la UN singur restaurant, sunt de obicei putini (zeci, nu
+      // sute); concurenta reala de care avem nevoie e intre rezolvari
+      // diferite (loop-ul de mai jos), nu aici.
       for (const customer of uniqueByEmail.values()) {
         const displayName = customer.contact_name
           ? customer.contact_name.trim().replace(/^\p{L}/u, (c: string) => c.toLocaleUpperCase("ro-RO"))
@@ -169,12 +177,14 @@ export async function POST(req: Request) {
         if (updateError) throw updateError;
       }
 
-      results.push({ resolutionId: resolution.id, theme: resolution.theme, status: "improved", customersNotified: sentCount });
+      return { resolutionId: resolution.id, theme: resolution.theme, status: "improved", customersNotified: sentCount };
     } catch (err) {
       console.error(`Bucla catre client esuata pentru rezolvarea ${resolution.id}:`, err);
-      results.push({ resolutionId: resolution.id, theme: resolution.theme, status: "error", customersNotified: 0, error: String(err) });
+      return { resolutionId: resolution.id, theme: resolution.theme, status: "error", customersNotified: 0, error: String(err) };
     }
   }
+
+  const results = await mapWithConcurrency(latestPerThemeRestaurant, CONCURRENCY, processResolution);
 
   return NextResponse.json({ results });
 }
