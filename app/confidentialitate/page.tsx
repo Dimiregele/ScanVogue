@@ -27,7 +27,7 @@ function Section({ title, children }: { title: string; children: React.ReactNode
 }
 
 export default function PrivacyPolicyPage() {
-  const lastUpdated = "12 august 2026";
+  const lastUpdated = "5 septembrie 2026";
 
   return (
     <div
@@ -91,18 +91,38 @@ export default function PrivacyPolicyPage() {
 
         <Section title="4. Cât timp păstrăm datele">
           <p>
-            Datele sunt păstrate atât timp cât este necesar pentru a soluționa feedback-ul trimis și pentru
-            ca restaurantul să poată urmări problemele semnalate în timp. Poți oricând cere ștergerea lor mai
-            devreme — vezi secțiunea „Drepturile tale" de mai jos.
+            Datele legate de o reclamație (mesaj, contact, statusul rezolvării) sunt păstrate timp de{" "}
+            <strong>24 de luni</strong> de la ultima activitate pe acel caz, perioadă în care restaurantul
+            poate urmări dacă problema semnalată s-a rezolvat cu adevărat. După acest interval, datele sunt
+            șterse sau anonimizate automat. Poți oricând cere ștergerea lor mai devreme — vezi secțiunea
+            „Drepturile tale" de mai jos.
           </p>
         </Section>
 
         <Section title="5. Cine are acces la datele tale">
-          <p>
+          <p style={{ marginBottom: 10 }}>
             Datele sunt vizibile doar echipei restaurantului unde ai lăsat feedback-ul și echipei tehnice
             ScanVogue, strict pentru mentenanța platformei. Nu vindem, nu închiriem și nu partajăm datele tale
             cu terți în scop de marketing.
           </p>
+          <p style={{ marginBottom: 10 }}>
+            Folosim câțiva furnizori tehnici (subîmputerniciți) care procesează datele exclusiv în numele
+            nostru, pentru a face platforma să funcționeze:
+          </p>
+          <ul style={{ margin: 0, paddingLeft: 20 }}>
+            <li>
+              <strong>Supabase</strong> — găzduirea bazei de date și autentificarea conturilor (UE);
+            </li>
+            <li>
+              <strong>Resend</strong> — trimiterea emailurilor de notificare către restaurant și, dacă e
+              cazul, a răspunsului către tine;
+            </li>
+            <li>
+              <strong>Groq</strong> — analizează automat conținutul mesajului tău (ex. categorisirea temei
+              reclamației) pentru a ajuta restaurantul să rezolve problema mai rapid; acest furnizor este în
+              afara Spațiului Economic European, iar transferul se face cu garanțiile prevăzute de GDPR.
+            </li>
+          </ul>
         </Section>
 
         <Section title="6. Drepturile tale">
