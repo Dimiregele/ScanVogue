@@ -30,8 +30,8 @@ export async function proxy(request: NextRequest) {
   return response;
 }
 
-// Middleware-ul ruleaza DOAR pe rutele de admin -- nu incetineste pagina
-// publica de scanare, care ramane cat mai rapida posibil.
+// Middleware-ul ruleaza DOAR pe panourile cu login (admin + restaurant) --
+// nu incetineste pagina publica de scanare, care ramane cat mai rapida posibil.
 export const config = {
-  matcher: ["/admin-x7k2/:path*"],
+  matcher: ["/admin-x7k2/:path*", "/gest-x4p7/:path*"],
 };
