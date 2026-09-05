@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase";
 import { resend } from "@/lib/resend";
 import { buildMonthlyReport } from "@/lib/monthly-report";
+import { mapWithConcurrency } from "@/lib/concurrency";
 import {
   wrapEmailHtml,
   restaurantHeaderHtml,
@@ -11,6 +12,11 @@ import {
   themeListHtml,
   ctaButtonHtml,
 } from "@/lib/email-html";
+
+// Vezi nota din weekly-themes -- acelasi motiv pentru plafonul de concurenta.
+const CONCURRENCY = 15;
+
+type Result = { restaurantId: string; sent: boolean; error?: string };
 
 // Declansata lunar de un GitHub Action (vezi .github/workflows), NU de useri.
 // Protejata printr-un secret trimis in header -- fara el, orice apel e refuzat,
@@ -30,12 +36,9 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
-  const results: { restaurantId: string; sent: boolean; error?: string }[] = [];
-
-  for (const restaurant of restaurants ?? []) {
+  async function processRestaurant(restaurant: { id: string; name: string; alert_email: string | null }): Promise<Result> {
     if (!restaurant.alert_email) {
-      results.push({ restaurantId: restaurant.id, sent: false, error: "fara alert_email" });
-      continue;
+      return { restaurantId: restaurant.id, sent: false, error: "fara alert_email" };
     }
 
     try {
@@ -44,8 +47,7 @@ export async function POST(req: Request) {
       // Fara scanari deloc in ultimele 30 de zile -- probabil plaquette-a nu
       // a fost inca folosita, nu are sens sa trimitem un raport gol.
       if (report.totalScans === 0) {
-        results.push({ restaurantId: restaurant.id, sent: false, error: "fara scanari in perioada" });
-        continue;
+        return { restaurantId: restaurant.id, sent: false, error: "fara scanari in perioada" };
       }
 
       const trendLine =
@@ -100,12 +102,14 @@ export async function POST(req: Request) {
       });
 
       if (sendError) throw sendError;
-      results.push({ restaurantId: restaurant.id, sent: true });
+      return { restaurantId: restaurant.id, sent: true };
     } catch (err) {
       console.error(`Raport lunar esuat pentru ${restaurant.id}:`, err);
-      results.push({ restaurantId: restaurant.id, sent: false, error: String(err) });
+      return { restaurantId: restaurant.id, sent: false, error: String(err) };
     }
   }
+
+  const results = await mapWithConcurrency(restaurants ?? [], CONCURRENCY, processRestaurant);
 
   return NextResponse.json({ results });
 }
