@@ -127,6 +127,34 @@ export async function deleteRestaurant(restaurantId: string) {
   revalidatePath("/admin-x7k2");
 }
 
+// Marcheaza restaurantul ca fiind client platitor (a trecut de luna
+// gratuita). Placheta fizica se comanda/trimite DOAR dupa ce e bifat asta --
+// vezi PlaqueButton mai jos, care apare doar cand is_paying e true.
+export async function togglePayingStatus(restaurantId: string, newValue: boolean) {
+  const supabase = await getServerClient();
+  const { error } = await supabase
+    .from("restaurants")
+    .update({ is_paying: newValue })
+    .eq("id", restaurantId);
+
+  if (error) throw error;
+  revalidatePath("/admin-x7k2");
+}
+
+// Bifat manual dupa ce placheta fizica a fost efectiv trimisa/predata
+// restaurantului -- pur informativ, ca sa nu se piarda evidenta cui i-a
+// fost deja trimisa si cui nu, pe masura ce cresc numarul de restaurante.
+export async function markPlaqueSent(restaurantId: string) {
+  const supabase = await getServerClient();
+  const { error } = await supabase
+    .from("restaurants")
+    .update({ plaque_sent_at: new Date().toISOString() })
+    .eq("id", restaurantId);
+
+  if (error) throw error;
+  revalidatePath("/admin-x7k2");
+}
+
 export async function signOut() {
   const supabase = await getServerClient();
   await supabase.auth.signOut();
