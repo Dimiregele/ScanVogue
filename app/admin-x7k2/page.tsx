@@ -6,6 +6,7 @@ import ToggleActiveButton from "./toggle-active-button";
 import ClearScansButton from "./clear-scans-button";
 import ClearAllButton from "./clear-all-button";
 import DeleteRestaurantButton from "./delete-restaurant-button";
+import PlaqueStatus from "./plaque-status";
 import { ADMIN_COLORS, ADMIN_GLOBAL_CSS, AdminEmbers, adminSectionTitleStyle } from "../_shared/decor";
 import AnimatedNumber from "../_shared/animated-number";
 
@@ -40,7 +41,7 @@ export default async function AdminHome() {
 
   const { data: restaurants } = await supabase
     .from("restaurants")
-    .select("id, name, slug, is_active, alert_email, created_at")
+    .select("id, name, slug, is_active, alert_email, created_at, is_paying, plaque_sent_at")
     .order("created_at", { ascending: false });
 
   const scanCounts = new Map<string, number>();
@@ -148,6 +149,11 @@ export default async function AdminHome() {
                       restaurantId={r.id}
                       name={r.name}
                       isActive={r.is_active}
+                    />
+                    <PlaqueStatus
+                      restaurantId={r.id}
+                      isPaying={r.is_paying}
+                      plaqueSentAt={r.plaque_sent_at}
                     />
                     <ClearScansButton
                       restaurantId={r.id}
