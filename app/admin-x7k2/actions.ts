@@ -51,6 +51,7 @@ export async function createRestaurant(formData: FormData) {
     slug: baseSlug, // incercam intai slug-ul curat
     google_review_url: googleReviewUrl,
     alert_email: alertEmail,
+    trial_started_at: new Date().toISOString(),
   });
 
   if (error) {
@@ -62,6 +63,7 @@ export async function createRestaurant(formData: FormData) {
         slug,
         google_review_url: googleReviewUrl,
         alert_email: alertEmail,
+        trial_started_at: new Date().toISOString(),
       });
       if (retryError) throw retryError;
     } else {
@@ -149,6 +151,20 @@ export async function markPlaqueSent(restaurantId: string) {
   const { error } = await supabase
     .from("restaurants")
     .update({ plaque_sent_at: new Date().toISOString() })
+    .eq("id", restaurantId);
+
+  if (error) throw error;
+  revalidatePath("/admin-x7k2");
+}
+
+// Seteaza/corecteaza manual data de start a probei -- necesar mai ales
+// pentru restaurante deja existente in sistem dinainte sa existe campul
+// asta, dar util oricand daca data reala difera de created_at.
+export async function setTrialStartDate(restaurantId: string, isoDate: string) {
+  const supabase = await getServerClient();
+  const { error } = await supabase
+    .from("restaurants")
+    .update({ trial_started_at: isoDate })
     .eq("id", restaurantId);
 
   if (error) throw error;
