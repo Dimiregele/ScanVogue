@@ -98,7 +98,7 @@ export default function TrialStatus({
   const expired = remaining < 0;
 
   return (
-    <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+    <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
       <span style={{ fontSize: 11, color: "#9C9382" }}>
         Trial din {start.toLocaleDateString("ro-RO")}
       </span>
