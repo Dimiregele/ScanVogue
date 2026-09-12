@@ -10,8 +10,13 @@ type Complaint = {
 };
 
 function csvEscape(value: string): string {
-  const needsQuotes = /[",\n]/.test(value);
-  const escaped = value.replace(/"/g, '""');
+  // Excel/Sheets interpreteaza un camp care incepe cu =, +, -, @ (sau tab/CR)
+  // ca pe o formula -- un mesaj de la un client rau-intentionat ("=cmd|...")
+  // ar putea rula cod la deschiderea fisierului. Prefixam cu un apostrof
+  // ca sa fie tratat mereu ca text simplu.
+  const neutralized = /^[=+\-@\t\r]/.test(value) ? `'${value}` : value;
+  const needsQuotes = /[",\n]/.test(neutralized);
+  const escaped = neutralized.replace(/"/g, '""');
   return needsQuotes ? `"${escaped}"` : escaped;
 }
 
