@@ -11,6 +11,15 @@ import AnimatedNumber from "../_shared/animated-number";
 
 export const dynamic = "force-dynamic";
 
+// "%" si "_" sunt caractere speciale (wildcard) in LIKE/ILIKE din Postgres --
+// un email real poate contine "_" (ex: ana_maria@gmail.com), care altfel s-ar
+// potrivi cu ORICE caracter in acea pozitie, nu doar cu litera "_". Le scapam
+// explicit inainte de a le folosi ca pattern, ca sa ramana o comparatie
+// exacta (doar case-insensitive), nu o cautare cu wildcard.
+function escapeLikePattern(value: string): string {
+  return value.replace(/[\\%_]/g, (ch) => `\\${ch}`);
+}
+
 export default async function OwnerPanel() {
   const supabase = await getServerClient();
 
@@ -37,7 +46,7 @@ export default async function OwnerPanel() {
   const { data: restaurant } = await supabase
     .from("restaurants")
     .select("id, name, slug, alert_email, google_review_url")
-    .ilike("alert_email", user.email ?? "")
+    .ilike("alert_email", escapeLikePattern(user.email ?? ""))
     .maybeSingle();
 
   if (!restaurant) {
