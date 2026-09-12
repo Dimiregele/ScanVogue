@@ -1300,7 +1300,10 @@ function ManagerDemo({ restaurantName }: { restaurantName: string }) {
   }, [scans, granularity]);
  
   const exportCsv = () => {
-    const esc = (v: string) => (/[",\n]/.test(v) ? `"${v.replace(/"/g, '""')}"` : v);
+    const esc = (v: string) => {
+      const neutralized = /^[=+\-@\t\r]/.test(v) ? `'${v}` : v;
+      return /[",\n]/.test(neutralized) ? `"${neutralized.replace(/"/g, '""')}"` : neutralized;
+    };
     const header = ["Data", "Status", "Mesaj", "Nume contact", "Telefon", "Email"];
     const rows = complaints.map((c) => [
       new Date(c.created_at).toLocaleString("ro-RO"),
