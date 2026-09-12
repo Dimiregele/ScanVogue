@@ -55,7 +55,15 @@ export async function createRestaurant(formData: FormData) {
   });
 
   if (error) {
-    if (error.code === "23505") {
+    // 23505 = unique_violation, dar poate fi si pe alta coloana unica
+    // (ex. alert_email), nu neaparat pe slug -- verificam explicit ce
+    // coloana a generat conflictul inainte sa reincercam cu un slug nou,
+    // ca sa nu ascundem o eroare complet diferita (si irelevanta pentru
+    // reincercare) in spatele unui mesaj de succes sau al aceleiasi erori.
+    const isSlugConflict =
+      error.code === "23505" && /slug/i.test(error.details ?? error.message ?? "");
+
+    if (isSlugConflict) {
       // slug deja folosit -> reincercam cu sufix
       const { error: retryError } = await supabase.from("restaurants").insert({
         name,
