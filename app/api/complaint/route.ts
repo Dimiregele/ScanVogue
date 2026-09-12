@@ -15,7 +15,7 @@ import {
 
 export async function POST(req: Request) {
   try {
-    const { restaurantId, message, contactName, contactEmail } = await req.json();
+    const { restaurantId, message, contactName, contactEmail, contactPhone } = await req.json();
 
     if (!restaurantId || typeof message !== "string" || !message.trim()) {
       return NextResponse.json({ error: "Date lipsa" }, { status: 400 });
@@ -28,6 +28,7 @@ export async function POST(req: Request) {
         message: message.trim(),
         contact_name: contactName?.trim() || null,
         contact_email: contactEmail?.trim() || null,
+        contact_phone: contactPhone?.trim() || null,
       })
       .select("id")
       .single();
