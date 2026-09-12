@@ -23,7 +23,8 @@ export default function GoogleUrlSetting({
         setSaved(true);
       } catch (err) {
         console.error("Nu am putut salva linkul Google Reviews:", err);
-        window.alert("Ceva nu a mers bine la salvare. Încearcă din nou.");
+        const msg = err instanceof Error ? err.message : "Ceva nu a mers bine la salvare. Încearcă din nou.";
+        window.alert(msg);
       }
     });
   };
