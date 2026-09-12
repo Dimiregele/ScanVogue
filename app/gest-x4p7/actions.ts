@@ -135,10 +135,24 @@ export async function updateGoogleReviewUrl(restaurantId: string, googleReviewUr
   const trimmed = googleReviewUrl.trim();
   if (!trimmed) throw new Error("Linkul nu poate fi gol.");
 
+  // Validam ca e un URL absolut, valid, pe https -- altfel scan-client.tsx
+  // face `window.location.href = restaurant.googleReviewUrl` fara alta
+  // verificare, iar un link gresit (fara "https://", text simplu etc.)
+  // ar rupe silentios fluxul de recenzie pozitiva pentru clientii care scaneaza.
+  let parsed: URL;
+  try {
+    parsed = new URL(trimmed);
+  } catch {
+    throw new Error("Linkul nu este valid. Asigură-te că începe cu https://");
+  }
+  if (parsed.protocol !== "https:") {
+    throw new Error("Linkul trebuie să folosească https://");
+  }
+
   const supabase = await getServerClient();
   const { error } = await supabase
     .from("restaurants")
-    .update({ google_review_url: trimmed })
+    .update({ google_review_url: parsed.toString() })
     .eq("id", restaurantId);
 
   if (error) throw error;
