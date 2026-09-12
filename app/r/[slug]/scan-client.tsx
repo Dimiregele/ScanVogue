@@ -255,6 +255,7 @@ export default function ScanClient({ restaurant, scanId }: { restaurant: Restaur
   const [message, setMessage] = useState("");
   const [contactName, setContactName] = useState("");
   const [contactEmail, setContactEmail] = useState("");
+  const [contactPhone, setContactPhone] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
   const handlePositive = async () => {
@@ -288,6 +289,7 @@ export default function ScanClient({ restaurant, scanId }: { restaurant: Restaur
           message,
           contactName,
           contactEmail,
+          contactPhone,
         }),
       });
       if (!res.ok) {
@@ -415,6 +417,14 @@ export default function ScanClient({ restaurant, scanId }: { restaurant: Restaur
                   value={contactEmail}
                   onChange={(e) => setContactEmail(e.target.value)}
                   placeholder="Email — primești răspunsul nostru aici"
+                  className="onyx-input onyx-fade-3"
+                  style={{ width: "100%", background: COLORS.inputBg, border: `1px solid ${COLORS.inputBorder}`, borderRadius: 12, padding: 14, color: COLORS.textPrimary, fontSize: 14, marginBottom: 10, fontFamily: "inherit", boxSizing: "border-box" }}
+                />
+                <input
+                  type="tel"
+                  value={contactPhone}
+                  onChange={(e) => setContactPhone(e.target.value)}
+                  placeholder="Telefon (opțional)"
                   className="onyx-input onyx-fade-3"
                   style={{ width: "100%", background: COLORS.inputBg, border: `1px solid ${COLORS.inputBorder}`, borderRadius: 12, padding: 14, color: COLORS.textPrimary, fontSize: 14, marginBottom: 20, fontFamily: "inherit", boxSizing: "border-box" }}
                 />
