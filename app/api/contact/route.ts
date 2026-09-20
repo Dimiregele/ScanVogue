@@ -1,7 +1,33 @@
 import { NextRequest, NextResponse } from "next/server";
+import { getClientIp } from "@/lib/request-meta";
 
-const TO_EMAIL = "scanvogue@gmail.com";
+// Unificat pe domeniul propriu (scanvogue.ro) -- FROM_EMAIL era deja pe
+// domeniu, dar destinatarul si adresele afisate in mesajele de eroare mai
+// jos erau pe un Gmail personal. Suprascrie cu CONTACT_TO_EMAIL daca inbox-ul
+// de pe domeniu inca nu e configurat sa primeasca mail.
+const TO_EMAIL = process.env.CONTACT_TO_EMAIL || "contact@scanvogue.ro";
 const FROM_EMAIL = process.env.RESEND_FROM_EMAIL || "ScanVogue <contact@scanvogue.ro>";
+
+// Rate limit in memorie, per IP -- "best effort": pe serverless (Netlify),
+// memoria nu persista intre cold starts, deci nu e o garantie absoluta, dar
+// tot limiteaza eficient un abuz sustinut pe o singura instanta calda. Pentru
+// o garantie reala indiferent de cold starts, ar trebui un store extern
+// (ex. Upstash Redis) sau un tabel in Supabase -- nejustificat momentan
+// pentru un formular de contact cu volum mic.
+const RATE_LIMIT_MAX = 5;
+const RATE_LIMIT_WINDOW_MS = 10 * 60_000;
+const requestLog = new Map<string, number[]>();
+
+function isRateLimited(ip: string): boolean {
+  const now = Date.now();
+  const windowStart = now - RATE_LIMIT_WINDOW_MS;
+  const timestamps = (requestLog.get(ip) ?? []).filter((t) => t > windowStart);
+  timestamps.push(now);
+  requestLog.set(ip, timestamps);
+  // Curatare simpla ca sa nu creasca Map-ul la nesfarsit intre cold starts.
+  if (requestLog.size > 1000) requestLog.clear();
+  return timestamps.length > RATE_LIMIT_MAX;
+}
 
 type Payload = {
   name?: unknown;
@@ -31,6 +57,11 @@ export async function POST(request: NextRequest) {
 
   // Honeypot: bots fill hidden fields. Pretend success, send nothing.
   if (str(payload.company, 200)) return NextResponse.json({ ok: true }, { status: 200 });
+
+  const clientIp = getClientIp(request.headers);
+  if (clientIp && isRateLimited(clientIp)) {
+    return NextResponse.json({ error: "Prea multe mesaje. Încearcă din nou mai târziu." }, { status: 429 });
+  }
 
   const name = str(payload.name, 120);
   const email = str(payload.email, 200);
@@ -79,11 +110,11 @@ export async function POST(request: NextRequest) {
     if (!response.ok) {
       const body = await response.text();
       console.error(`Resend request failed [${response.status}]: ${body}`);
-      return NextResponse.json({ error: "Emailul nu a putut fi trimis. Încearcă din nou sau scrie direct la scanvogue@gmail.com." }, { status: 502 });
+      return NextResponse.json({ error: "Emailul nu a putut fi trimis. Încearcă din nou sau scrie direct la contact@scanvogue.ro." }, { status: 502 });
     }
   } catch (error) {
     console.error(error);
-    return NextResponse.json({ error: "Emailul nu a putut fi trimis. Încearcă din nou sau scrie direct la scanvogue@gmail.com." }, { status: 502 });
+    return NextResponse.json({ error: "Emailul nu a putut fi trimis. Încearcă din nou sau scrie direct la contact@scanvogue.ro." }, { status: 502 });
   }
 
   return NextResponse.json({ ok: true }, { status: 200 });
