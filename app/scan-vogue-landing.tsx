@@ -7,7 +7,7 @@
  * Are nevoie doar de React. Toate stilurile sunt inline sau într-un
  * <style> injectat mai jos.
  *
- * Contact / vânzări: scanvogue@gmail.com
+ * Contact / vânzări: contact@scanvogue.ro
  */
  
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -32,7 +32,7 @@ const C = {
   amber: "#E0A88C",
 };
  
-const SALES_EMAIL = "scanvogue@gmail.com";
+const SALES_EMAIL = "contact@scanvogue.ro";
  
 const serif = "'Cormorant Garamond', Georgia, serif";
 const sans = "'Inter', system-ui, -apple-system, Segoe UI, sans-serif";
@@ -1932,7 +1932,7 @@ export default function ScanVogueLanding() {
               <div style={{ fontSize: 11, letterSpacing: ".24em", textTransform: "uppercase", color: C.gold }}>Pachet complet</div>
               <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "center", gap: 8, marginTop: 14 }}>
                 <span style={{ fontFamily: serif, fontSize: 62, fontWeight: 600, lineHeight: 1 }}>
-                  <Counter to={200} />
+                  <Counter to={300} />
                 </span>
                 <span style={{ fontSize: 15, color: C.muted, paddingBottom: 10 }}>lei / lună</span>
               </div>
