@@ -1,0 +1,34 @@
+name: Curatare Retentie Date
+
+# Sterge lunar scanarile si reclamatiile mai vechi de 24 de luni, ca sa
+# respectam ce promite politica de confidentialitate (app/confidentialitate).
+# Ruta e protejata printr-un secret (DATA_RETENTION_SECRET), la fel ca
+# celelalte cron job-uri.
+
+on:
+  schedule:
+    # Ruleaza in ziua 2 a fiecarei luni, la 07:30 UTC -- la o jumatate de ora
+    # dupa raportul lunar, ca sa nu se suprapuna cu el pe aceeasi restrictie
+    # de concurenta din Supabase (planul gratuit are o limita de conexiuni
+    # simultane).
+    - cron: "30 7 2 * *"
+  workflow_dispatch: {}
+
+jobs:
+  trigger-data-retention:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Declanseaza curatarea de retentie
+        run: |
+          STATUS=$(curl -s -o /tmp/response.json -w "%{http_code}" \
+            -X POST "https://scanvogue.ro/api/data-retention" \
+            -H "x-report-secret: ${DATA_RETENTION_SECRET}")
+          echo "Status HTTP: $STATUS"
+          echo "Raspuns:"
+          cat /tmp/response.json
+          if [ "$STATUS" -ge 400 ]; then
+            echo "::error::Curatarea de retentie a esuat (status $STATUS)."
+            exit 1
+          fi
+        env:
+          DATA_RETENTION_SECRET: ${{ secrets.DATA_RETENTION_SECRET }}
