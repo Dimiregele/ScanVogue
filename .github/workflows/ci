@@ -1,0 +1,40 @@
+name: CI
+
+# Ruleaza "next build" la fiecare push si pull request, ca sa prindem un
+# deploy stricat INAINTE sa ajunga pe Netlify -- pana acum, niciun workflow
+# nu verifica asta (doar cele trei cron job-uri programate).
+#
+# Variabilele de mediu de mai jos sunt valori fictive, DOAR pentru ca build-ul
+# sa nu pice la citirea lor -- niciun request real nu se face la build time
+# (toate paginile relevante sunt "force-dynamic"). Nu sunt secrete reale si
+# nu trebuie sa fie.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: "npm"
+
+      - name: Instaleaza dependintele
+        run: npm ci
+
+      - name: Build
+        run: npm run build
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: "https://ci-placeholder.supabase.co"
+          NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: "ci-placeholder-publishable-key"
+          SUPABASE_SERVICE_ROLE_KEY: "ci-placeholder-service-role-key"
+          RESEND_API_KEY: "ci-placeholder-resend-key"
+          RESEND_FROM_EMAIL: "ScanVogue <contact@scanvogue.ro>"
+          GROQ_API_KEY: "ci-placeholder-groq-key"
