@@ -27,7 +27,7 @@ function Section({ title, children }: { title: string; children: React.ReactNode
 }
 
 export default function PrivacyPolicyPage() {
-  const lastUpdated = "5 septembrie 2026";
+  const lastUpdated = "20 septembrie 2026";
 
   return (
     <div
@@ -59,7 +59,12 @@ export default function PrivacyPolicyPage() {
 
         <Section title="1. Cine suntem">
           <p>
-            Această pagină este operată de ScanVogue, furnizorul platformei tehnice folosite de restaurantul
+            Această pagină este operată de{" "}
+            <strong>
+              [DE COMPLETAT: denumirea legală a firmei/PFA — ex. „Nume SRL"], CUI [DE COMPLETAT], cu sediul în
+              [DE COMPLETAT]
+            </strong>{" "}
+            (denumită în continuare „ScanVogue"), furnizorul platformei tehnice folosite de restaurantul
             partener pentru a colecta feedback de la clienți. Pentru datele lăsate pe formularul de mai jos,
             restaurantul unde ai scanat plăcuța este operatorul de date (decide de ce se colectează datele),
             iar ScanVogue este împuternicitul — asigură infrastructura tehnică prin care aceste date sunt
@@ -73,6 +78,11 @@ export default function PrivacyPolicyPage() {
             <li>Alegerea făcută (experiență pozitivă sau negativă) și data/ora scanării;</li>
             <li>Mesajul pe care îl scrii, dacă alegi să lași feedback despre o experiență negativă;</li>
             <li>Numele și adresa de email, doar dacă alegi tu să le lași — sunt întotdeauna opționale;</li>
+            <li>
+              O formă criptografică (hash) a adresei tale IP, păstrată exclusiv cât timp sunt păstrate și
+              celelalte date de mai sus (vezi secțiunea 4) și folosită doar tehnic, pentru a preveni trimiterea
+              automată în masă a unor scanări sau mesaje false — nu pentru a te identifica sau urmări.
+            </li>
           </ul>
           <p style={{ marginTop: 10 }}>
             Pagina de scanare nu folosește cookie-uri de urmărire (tracking) și nu colectează date de
@@ -81,21 +91,31 @@ export default function PrivacyPolicyPage() {
         </Section>
 
         <Section title="3. De ce colectăm aceste date">
-          <p>
+          <p style={{ marginBottom: 10 }}>
             Scopul este exclusiv legat de feedback-ul lăsat de tine: rutarea mesajului către echipa
             restaurantului, și — dacă ai lăsat un contact — posibilitatea ca cineva din echipă să revină
-            către tine pentru a rezolva problema semnalată. Temeiul legal este consimțământul tău, exprimat
-            prin completarea și trimiterea formularului.
+            către tine pentru a rezolva problema semnalată. Temeiul legal este interesul legitim al
+            restaurantului de a primi și rezolva feedback lăsat voluntar de proprii clienți — nu
+            consimțământul, pentru că nu ai completa un formular de reclamație dacă nu ai vrea deja ca mesajul
+            să ajungă la restaurant. Te poți opune oricând acestei prelucrări — vezi secțiunea „Drepturile
+            tale" de mai jos.
+          </p>
+          <p>
+            Dacă tema reclamației tale este marcată ulterior ca „rezolvată" de restaurant, s-ar putea să
+            primești automat, la câteva luni distanță, un singur email care te anunță că problema semnalată a
+            fost adresată. Acest email nu se retrimite dacă ai fost deja notificat pentru aceeași temă. Poți
+            oricând să ne ceri să nu mai primești acest tip de notificare, scriindu-ne la adresa din secțiunea
+            8 — vom reține preferința ta.
           </p>
         </Section>
 
         <Section title="4. Cât timp păstrăm datele">
           <p>
-            Datele legate de o reclamație (mesaj, contact, statusul rezolvării) sunt păstrate timp de{" "}
-            <strong>24 de luni</strong> de la ultima activitate pe acel caz, perioadă în care restaurantul
-            poate urmări dacă problema semnalată s-a rezolvat cu adevărat. După acest interval, datele sunt
-            șterse sau anonimizate automat. Poți oricând cere ștergerea lor mai devreme — vezi secțiunea
-            „Drepturile tale" de mai jos.
+            Datele legate de o scanare sau de o reclamație (mesaj, contact, statusul rezolvării) sunt păstrate
+            timp de <strong>24 de luni</strong> de la crearea lor, perioadă în care restaurantul poate urmări
+            dacă problema semnalată s-a rezolvat cu adevărat. După acest interval, datele sunt șterse automat,
+            printr-un proces lunar. Poți oricând cere ștergerea lor mai devreme — vezi secțiunea „Drepturile
+            tale" de mai jos.
           </p>
         </Section>
 
@@ -114,13 +134,20 @@ export default function PrivacyPolicyPage() {
               <strong>Supabase</strong> — găzduirea bazei de date și autentificarea conturilor (UE);
             </li>
             <li>
+              <strong>Netlify</strong> — găzduiește aplicația și procesează cererile tale către site (logurile
+              tehnice de acces), pentru ca formularul și paginile să funcționeze;
+            </li>
+            <li>
               <strong>Resend</strong> — trimiterea emailurilor de notificare către restaurant și, dacă e
               cazul, a răspunsului către tine;
             </li>
             <li>
               <strong>Groq</strong> — analizează automat conținutul mesajului tău (ex. categorisirea temei
               reclamației) pentru a ajuta restaurantul să rezolve problema mai rapid; acest furnizor este în
-              afara Spațiului Economic European, iar transferul se face cu garanțiile prevăzute de GDPR.
+              afara Spațiului Economic European, iar transferul se face cu garanțiile prevăzute de GDPR. Groq
+              nu reține implicit conținutul mesajelor procesate — datele sunt păstrate doar temporar, cât e
+              nevoie pentru a genera răspunsul, cu excepția unor cazuri limitate (depanare tehnică sau
+              prevenirea abuzurilor).
             </li>
           </ul>
         </Section>
@@ -135,6 +162,10 @@ export default function PrivacyPolicyPage() {
             <li>Ceri portabilitatea datelor;</li>
             <li>Depui o plângere la Autoritatea Națională de Supraveghere a Prelucrării Datelor cu Caracter Personal (ANSPDCP), dacă consideri că drepturile tale nu au fost respectate.</li>
           </ul>
+          <p style={{ marginTop: 10 }}>
+            Răspundem oricărei cereri de mai sus în cel mult 30 de zile de la primire, conform termenului
+            prevăzut de GDPR.
+          </p>
         </Section>
 
         <Section title="7. Securitate">
@@ -148,8 +179,8 @@ export default function PrivacyPolicyPage() {
           <p>
             Pentru orice întrebare legată de datele tale personale sau pentru a-ți exercita drepturile de mai
             sus, ne poți scrie la{" "}
-            <a href="mailto:scanvogue@gmail.com" style={{ color: COLORS.gold }}>
-              scanvogue@gmail.com
+            <a href="mailto:contact@scanvogue.ro" style={{ color: COLORS.gold }}>
+              contact@scanvogue.ro
             </a>
             .
           </p>
