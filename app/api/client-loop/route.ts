@@ -5,6 +5,7 @@ import { computeOutcomeForResolution } from "@/lib/theme-resolution";
 import { composeResolutionEmail } from "@/lib/complaint-ai";
 import { mapWithConcurrency } from "@/lib/concurrency";
 import { wrapEmailHtml, paragraphHtml, signatureHtml } from "@/lib/email-html";
+import { isAuthorizedCronRequest, sanitizeFromName } from "@/lib/request-meta";
 
 // Cate rezolvari procesam simultan (fiecare poate insemna un apel AI + unul
 // sau mai multe emailuri). Vezi nota din weekly-themes -- acelasi motiv.
@@ -25,8 +26,7 @@ type Result = { resolutionId: string; theme: string; status: string; customersNo
 //
 // Declansata de un GitHub Action, protejata printr-un secret dedicat.
 export async function POST(req: Request) {
-  const secret = req.headers.get("x-report-secret");
-  if (!secret || secret !== process.env.CLIENT_LOOP_SECRET) {
+  if (!isAuthorizedCronRequest(req, process.env.CLIENT_LOOP_SECRET)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
@@ -142,7 +142,7 @@ export async function POST(req: Request) {
         const html = wrapEmailHtml(bodyParts.join("\n"));
 
         const { error: sendError } = await resend.emails.send({
-          from: `${restaurantName} <${fromAddress}>`,
+          from: `${sanitizeFromName(restaurantName)} <${fromAddress}>`,
           to: customer.contact_email,
           subject: `Am rezolvat ce ne-ai semnalat — ${restaurantName}`,
           text: [
