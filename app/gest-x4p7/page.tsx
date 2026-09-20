@@ -11,15 +11,6 @@ import AnimatedNumber from "../_shared/animated-number";
 
 export const dynamic = "force-dynamic";
 
-// "%" si "_" sunt caractere speciale (wildcard) in LIKE/ILIKE din Postgres --
-// un email real poate contine "_" (ex: ana_maria@gmail.com), care altfel s-ar
-// potrivi cu ORICE caracter in acea pozitie, nu doar cu litera "_". Le scapam
-// explicit inainte de a le folosi ca pattern, ca sa ramana o comparatie
-// exacta (doar case-insensitive), nu o cautare cu wildcard.
-function escapeLikePattern(value: string): string {
-  return value.replace(/[\\%_]/g, (ch) => `\\${ch}`);
-}
-
 export default async function OwnerPanel() {
   const supabase = await getServerClient();
 
@@ -31,22 +22,23 @@ export default async function OwnerPanel() {
     redirect("/gest-x4p7/login");
   }
 
-  // RLS ("owner reads own restaurant") verifica direct emailul contului
-  // logat impotriva restaurants.alert_email -- nu exista pas separat de
-  // asociere manuala. Daca emailul contului nu se potriveste cu niciun
-  // alert_email, query-ul de mai jos nu intoarce niciun rand (nu eroare).
+  // RLS ("restaurants select (admin or owner)" -> has_restaurant_access)
+  // filtreaza automat la restaurantele legate explicit de acest cont prin
+  // restaurant_users -- nu mai filtram noi dupa alert_email (vezi migratia
+  // harden_restaurant_owner_access: izolarea nu mai depinde de un text
+  // liber needitat separat, ci de un rand explicit in restaurant_users,
+  // creat de super-admin la crearea restaurantului).
   //
-  // IMPORTANT: filtram explicit dupa alert_email == emailul userului logat.
-  // Fara acest filtru, un cont care e SI admin (vede toate restaurantele
-  // prin RLS) primeste mai multe randuri la acest query, iar .maybeSingle()
-  // arunca eroare ("multiple rows returned") care e inghitita silentios --
-  // rezultatul e `restaurant: null`, deci ecranul arata gresit mesajul
-  // "acest cont nu este asociat niciunui restaurant" chiar si pentru
-  // proprietarul de drept.
+  // .limit(1) + .order(): panoul curent arata un singur restaurant per cont
+  // (nu exista inca UI de "schimba restaurantul"). Daca un proprietar ajunge
+  // vreodata legat de mai multe restaurante (mai multe locatii), i-l aratam
+  // deterministic pe cel mai vechi -- nu e o limitare introdusa de query,
+  // ci de UI-ul de o singura pagina de mai jos.
   const { data: restaurant } = await supabase
     .from("restaurants")
     .select("id, name, slug, alert_email, google_review_url")
-    .ilike("alert_email", escapeLikePattern(user.email ?? ""))
+    .order("created_at", { ascending: true })
+    .limit(1)
     .maybeSingle();
 
   if (!restaurant) {
@@ -56,8 +48,8 @@ export default async function OwnerPanel() {
         <div style={contentStyle}>
           <p style={{ color: ADMIN_COLORS.textMuted }}>
             Acest cont ({user.email}) nu este asociat niciunui restaurant.
-            Accesul se dă contului cu adresa de email folosită pentru alertele
-            de reclamații. Contactează-ne dacă ar trebui să ai acces.
+            Accesul se dă contului folosit la crearea restaurantului de către
+            echipa noastră. Contactează-ne dacă ar trebui să ai acces.
           </p>
           <form action={signOutOwner}>
             <button style={linkButtonStyle}>Delogare</button>
