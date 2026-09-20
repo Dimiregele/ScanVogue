@@ -17,7 +17,7 @@ const jsonLd = {
     "@type": "Organization",
     name: "ScanVogue",
     url: "https://scanvogue.ro",
-    email: "scanvogue@gmail.com",
+    email: "contact@scanvogue.ro",
   },
   areaServed: {
     "@type": "Country",
