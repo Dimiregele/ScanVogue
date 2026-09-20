@@ -256,6 +256,7 @@ export default function ScanClient({ restaurant, scanId }: { restaurant: Restaur
   const [contactName, setContactName] = useState("");
   const [contactEmail, setContactEmail] = useState("");
   const [contactPhone, setContactPhone] = useState("");
+  const [company, setCompany] = useState(""); // honeypot -- vezi randul ascuns din formular mai jos
   const [submitting, setSubmitting] = useState(false);
 
   const handlePositive = async () => {
@@ -286,10 +287,12 @@ export default function ScanClient({ restaurant, scanId }: { restaurant: Restaur
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           restaurantId: restaurant.id,
+          scanId,
           message,
           contactName,
           contactEmail,
           contactPhone,
+          company,
         }),
       });
       if (!res.ok) {
@@ -378,12 +381,28 @@ export default function ScanClient({ restaurant, scanId }: { restaurant: Restaur
 
                 <textarea
                   required
+                  maxLength={2000}
                   value={message}
                   onChange={(e) => setMessage(e.target.value)}
                   placeholder="Ce nu a fost pe placul tău?"
                   rows={4}
                   className="onyx-input onyx-fade-2"
                   style={{ width: "100%", background: COLORS.inputBg, border: `1px solid ${COLORS.inputBorder}`, borderRadius: 12, padding: 14, color: COLORS.textPrimary, fontSize: 14, marginBottom: 18, resize: "none", fontFamily: "inherit", boxSizing: "border-box" }}
+                />
+
+                {/* Honeypot -- camp invizibil pentru oameni (offscreen, fara tab,
+                    fara autocomplete), pe care botii de completare automata a
+                    formularelor il umplu aproape mereu. Un om nu-l vede si nu-l
+                    poate completa in flux normal de tastare/tab. */}
+                <input
+                  type="text"
+                  name="company"
+                  value={company}
+                  onChange={(e) => setCompany(e.target.value)}
+                  tabIndex={-1}
+                  autoComplete="off"
+                  aria-hidden="true"
+                  style={{ position: "absolute", left: "-9999px", width: 1, height: 1, opacity: 0 }}
                 />
 
                 <div
@@ -408,6 +427,7 @@ export default function ScanClient({ restaurant, scanId }: { restaurant: Restaur
                 <input
                   value={contactName}
                   onChange={(e) => setContactName(e.target.value)}
+                  maxLength={120}
                   placeholder="Nume"
                   className="onyx-input onyx-fade-3"
                   style={{ width: "100%", background: COLORS.inputBg, border: `1px solid ${COLORS.inputBorder}`, borderRadius: 12, padding: 14, color: COLORS.textPrimary, fontSize: 14, marginBottom: 10, fontFamily: "inherit", boxSizing: "border-box" }}
@@ -416,6 +436,7 @@ export default function ScanClient({ restaurant, scanId }: { restaurant: Restaur
                   type="email"
                   value={contactEmail}
                   onChange={(e) => setContactEmail(e.target.value)}
+                  maxLength={200}
                   placeholder="Email — primești răspunsul nostru aici"
                   className="onyx-input onyx-fade-3"
                   style={{ width: "100%", background: COLORS.inputBg, border: `1px solid ${COLORS.inputBorder}`, borderRadius: 12, padding: 14, color: COLORS.textPrimary, fontSize: 14, marginBottom: 10, fontFamily: "inherit", boxSizing: "border-box" }}
@@ -424,6 +445,7 @@ export default function ScanClient({ restaurant, scanId }: { restaurant: Restaur
                   type="tel"
                   value={contactPhone}
                   onChange={(e) => setContactPhone(e.target.value)}
+                  maxLength={40}
                   placeholder="Telefon (opțional)"
                   className="onyx-input onyx-fade-3"
                   style={{ width: "100%", background: COLORS.inputBg, border: `1px solid ${COLORS.inputBorder}`, borderRadius: 12, padding: 14, color: COLORS.textPrimary, fontSize: 14, marginBottom: 20, fontFamily: "inherit", boxSizing: "border-box" }}
