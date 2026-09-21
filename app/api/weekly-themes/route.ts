@@ -1,86 +1,138 @@
 import { NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase";
+import { resend } from "@/lib/resend";
+import { computeThemeStats } from "@/lib/theme-analysis";
+import { getLatestResolutionOutcome, resolutionOutcomeLabel } from "@/lib/theme-resolution";
+import { mapWithConcurrency } from "@/lib/concurrency";
+import {
+  wrapEmailHtml,
+  restaurantHeaderHtml,
+  paragraphHtml,
+  mutedTextHtml,
+  themeListHtml,
+  ctaButtonHtml,
+} from "@/lib/email-html";
+import { isAuthorizedCronRequest, sanitizeFromName } from "@/lib/request-meta";
 
-// Scrierea e neautentificata (foloseste service_role, ocoleste RLS) pentru
-// ca vine de la un vizitator anonim care a scanat o plachetă fizică -- nu
-// are cont, deci nu poate exista un token de sesiune. UUID-urile sunt greu
-// de ghicit, dar asta singur nu e o autorizare -- fereastra de mai jos e
-// verificarea reala: doar scanari RECENTE si care nu au deja o alegere
-// salvata pot fi actualizate.
-const UPDATE_WINDOW_MINUTES = 30;
+// Fereastra de analiza e mai lunga decat cadenta de trimitere in mod
+// deliberat: trimitem saptamanal (ca sa fie un memento constant, nu doar
+// lunar), dar analizam ultimele 30 de zile de fiecare data, ca sa avem
+// destule date pentru un tipar real, nu doar 7 zile (prea putin, aproape
+// mereu "nicio tema clara").
+const ANALYSIS_WINDOW_DAYS = 30;
 
-/**
- * PATCH /api/scan
- * Actualizeaza randul de scanare deja creat (la incarcarea paginii) cu
- * alegerea facuta (positive/negative) si/sau rating-ul optional de 1-5 stele.
- *
- * Nu facem INSERT aici -- randul exista deja din Server Component, ca sa
- * avem exact 1 rand per scanare fizica (nu duplicate intre "a scanat" si
- * "a ales").
- */
-export async function PATCH(req: Request) {
-  try {
-    const { scanId, choice, rating } = await req.json();
+// Cate restaurante procesam simultan. Nu prea mare (risc de rate-limit la
+// Resend), nu prea mic (la sute/mii de restaurante, secvential ar depasi
+// limita de executie a functiei). 15 e un compromis rezonabil, usor de
+// ajustat aici daca vreodata devine nevoie.
+const CONCURRENCY = 15;
 
-    if (!scanId || typeof scanId !== "string") {
-      return NextResponse.json({ error: "scanId lipsa sau invalid" }, { status: 400 });
-    }
+type Result = { restaurantId: string; sent: boolean; themesFound: number; error?: string };
 
-    const updates: Record<string, unknown> = {};
-
-    if (choice !== undefined) {
-      if (choice !== "positive" && choice !== "negative") {
-        return NextResponse.json({ error: "choice invalid" }, { status: 400 });
-      }
-      updates.choice = choice;
-    }
-
-    if (rating !== undefined) {
-      if (typeof rating !== "number" || rating < 1 || rating > 5) {
-        return NextResponse.json({ error: "rating invalid" }, { status: 400 });
-      }
-      updates.rating = rating;
-    }
-
-    if (Object.keys(updates).length === 0) {
-      return NextResponse.json({ error: "Nimic de actualizat" }, { status: 400 });
-    }
-
-    // Verificam randul INAINTE de update: trebuie sa existe, sa fie recent,
-    // si campurile pe care incercam sa le scriem trebuie sa fie inca necompletate.
-    // Fara asta, orice request cu un scanId (chiar vechi, chiar deja decis)
-    // ar putea rescrie datele -- un write neautentificat care ocoleste RLS,
-    // fara nicio limita in timp sau stare.
-    const { data: existing, error: fetchError } = await supabaseAdmin
-      .from("scans")
-      .select("id, choice, rating, created_at")
-      .eq("id", scanId)
-      .maybeSingle();
-
-    if (fetchError) throw fetchError;
-    if (!existing) {
-      return NextResponse.json({ error: "Scanare inexistenta" }, { status: 404 });
-    }
-
-    const ageMinutes = (Date.now() - new Date(existing.created_at).getTime()) / 60000;
-    if (ageMinutes > UPDATE_WINDOW_MINUTES) {
-      return NextResponse.json({ error: "Scanare expirata" }, { status: 409 });
-    }
-
-    if (updates.choice !== undefined && existing.choice !== null) {
-      return NextResponse.json({ error: "Alegerea a fost deja salvata" }, { status: 409 });
-    }
-    if (updates.rating !== undefined && existing.rating !== null) {
-      return NextResponse.json({ error: "Rating-ul a fost deja salvat" }, { status: 409 });
-    }
-
-    const { error } = await supabaseAdmin.from("scans").update(updates).eq("id", scanId);
-
-    if (error) throw error;
-
-    return NextResponse.json({ success: true });
-  } catch (err) {
-    console.error("Eroare /api/scan:", err);
-    return NextResponse.json({ error: "Eroare interna" }, { status: 500 });
+// Declansata saptamanal de un GitHub Action, NU de useri -- protejata printr-un
+// secret dedicat (diferit de cel al raportului lunar), ca sa limitam ce se
+// poate face daca unul dintre cele doua secrete ar fi vreodata compromis.
+export async function POST(req: Request) {
+  if (!isAuthorizedCronRequest(req, process.env.WEEKLY_THEMES_SECRET)) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
+
+  const { data: restaurants, error } = await supabaseAdmin
+    .from("restaurants")
+    .select("id, name, alert_email")
+    .eq("is_active", true);
+
+  if (error) {
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+
+  const windowStart = new Date();
+  windowStart.setDate(windowStart.getDate() - ANALYSIS_WINDOW_DAYS);
+
+  async function processRestaurant(restaurant: { id: string; name: string; alert_email: string | null }): Promise<Result> {
+    try {
+      const { count: totalScans } = await supabaseAdmin
+        .from("scans")
+        .select("*", { count: "exact", head: true })
+        .eq("restaurant_id", restaurant.id)
+        .gte("created_at", windowStart.toISOString());
+
+      // Fara scanari in fereastra -- probabil plaqueta nu e inca folosita,
+      // nu are sens sa calculam sau sa trimitem nimic.
+      if (!totalScans || totalScans === 0) {
+        return { restaurantId: restaurant.id, sent: false, themesFound: 0, error: "fara scanari in perioada" };
+      }
+
+      const { data: complaints, error: complaintsError } = await supabaseAdmin
+        .from("complaints")
+        .select("theme, created_at")
+        .eq("restaurant_id", restaurant.id)
+        .gte("created_at", windowStart.toISOString());
+
+      if (complaintsError) throw complaintsError;
+
+      const themes = computeThemeStats(complaints ?? [], 5);
+
+      // Salvam instantaneul INDIFERENT daca au iesit teme sau nu (chiar si un
+      // instantaneu gol e o informatie utila: "am verificat, nu era nimic clar"),
+      // ca sa aiba dashboard-ul mereu o data de "ultima verificare".
+      const { error: insertError } = await supabaseAdmin.from("theme_snapshots").insert({
+        restaurant_id: restaurant.id,
+        window_days: ANALYSIS_WINDOW_DAYS,
+        themes,
+      });
+      if (insertError) throw insertError;
+
+      if (!restaurant.alert_email) {
+        return { restaurantId: restaurant.id, sent: false, themesFound: themes.length, error: "fara alert_email" };
+      }
+
+      // Fara teme clare -- nu trimitem email saptamanal gol, ca sa nu devina
+      // zgomot pe care proprietarul invata sa-l ignore. Instantaneul tot s-a
+      // salvat mai sus, deci dashboard-ul reflecta oricum starea curenta.
+      if (themes.length === 0) {
+        return { restaurantId: restaurant.id, sent: false, themesFound: 0, error: "nicio tema clara -- fara email" };
+      }
+
+      const themesWithOutcomes = await Promise.all(
+        themes.map(async (t) => {
+          const outcome = await getLatestResolutionOutcome(restaurant.id, t.theme);
+          return { ...t, outcomeLabel: outcome ? resolutionOutcomeLabel(outcome) : null };
+        })
+      );
+
+      const bodySections = [
+        restaurantHeaderHtml(restaurant.name),
+        mutedTextHtml(`Temele recurente din ultimele ${ANALYSIS_WINDOW_DAYS} de zile.`),
+        paragraphHtml("Cele mai frecvente teme din reclamațiile primite:"),
+        themeListHtml(themesWithOutcomes),
+        ctaButtonHtml("Deschide panoul", "https://scanvogue.ro/gest-x4p7"),
+      ];
+
+      const html = wrapEmailHtml(bodySections.join("\n"));
+
+      const fromDefault = "feedback@resend.dev";
+      const fromEnv = process.env.RESEND_FROM_EMAIL || fromDefault;
+      const fromAddressMatch = fromEnv.match(/<(.+)>/);
+      const fromAddress = fromAddressMatch ? fromAddressMatch[1] : fromEnv;
+
+      const { error: sendError } = await resend.emails.send({
+        from: `${sanitizeFromName(restaurant.name)} <${fromAddress}>`,
+        to: restaurant.alert_email,
+        subject: `Teme recurente — ${restaurant.name}`,
+        text: `Teme recurente din ultimele ${ANALYSIS_WINDOW_DAYS} zile: ${themes.map((t) => `${t.theme} (${t.count}x)`).join(", ")}. Deschide panoul: https://scanvogue.ro/gest-x4p7`,
+        html,
+      });
+
+      if (sendError) throw sendError;
+      return { restaurantId: restaurant.id, sent: true, themesFound: themes.length };
+    } catch (err) {
+      console.error(`Analiza saptamanala esuata pentru ${restaurant.id}:`, err);
+      return { restaurantId: restaurant.id, sent: false, themesFound: 0, error: String(err) };
+    }
+  }
+
+  const results = await mapWithConcurrency(restaurants ?? [], CONCURRENCY, processRestaurant);
+
+  return NextResponse.json({ results });
 }
