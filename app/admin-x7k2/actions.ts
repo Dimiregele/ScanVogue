@@ -181,14 +181,37 @@ export async function clearRestaurantEverything(restaurantId: string) {
 // Sterge DEFINITIV restaurantul insusi -- nu doar datele lui. Toate tabelele
 // legate (scans, complaints, theme_snapshots, theme_resolutions,
 // restaurant_users) au ON DELETE CASCADE pe restaurant_id, deci un singur
-// delete pe restaurants sterge automat tot ce tine de el. Nu sterge insa
-// contul de Supabase Auth al proprietarului (alert_email) -- acela poate
-// fi shared cu alt restaurant al aceluiasi proprietar, deci il lasam intact.
+// delete pe restaurants sterge automat tot ce tine de el. Cascade-ul nu
+// ajunge insa la auth.users, asa ca stergem explicit si conturile Supabase
+// Auth legate de restaurant (proprietar, manager, ospatar etc. -- toti cei
+// din restaurant_users). Altfel ar ramane useri orfani in Authentication.
+// Lista de useri se citeste INAINTE de stergere, fiindca dupa cascade
+// randurile din restaurant_users nu mai exista. Contul cu care e logat
+// super-adminul curent e exclus, ca sa nu se stearga singur din greseala.
 export async function deleteRestaurant(restaurantId: string) {
   const supabase = await getServerClient();
-  const { error } = await supabase.from("restaurants").delete().eq("id", restaurantId);
 
+  const { data: members, error: membersError } = await supabaseAdmin
+    .from("restaurant_users")
+    .select("user_id")
+    .eq("restaurant_id", restaurantId);
+  if (membersError) throw membersError;
+
+  const { data: current } = await supabase.auth.getUser();
+  const currentUserId = current.user?.id;
+
+  const { error } = await supabase.from("restaurants").delete().eq("id", restaurantId);
   if (error) throw error;
+
+  for (const { user_id } of members ?? []) {
+    if (user_id === currentUserId) continue;
+    const { error: deleteUserError } = await supabaseAdmin.auth.admin.deleteUser(user_id);
+    if (deleteUserError) {
+      // restaurantul e deja sters; nu aruncam eroare, doar logam
+      console.error("Nu am putut sterge contul Auth", user_id, deleteUserError);
+    }
+  }
+
   revalidatePath("/admin-x7k2");
 }
 
