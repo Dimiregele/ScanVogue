@@ -80,8 +80,8 @@ export default function DeleteRestaurantButton({
             </h3>
             <p style={{ color: "#9C9382", fontSize: 13, lineHeight: 1.5, marginBottom: 16 }}>
               Șterge restaurantul <strong style={{ color: "#E08C8C" }}>și tot ce ține de el</strong> —
-              scanări, reclamații, statistici, link-ul QR nu va mai funcționa. Contul de email al
-              proprietarului rămâne (poate fi refolosit la alt restaurant). <strong style={{ color: "#E08C8C" }}>Ireversibil.</strong>{" "}
+              scanări, reclamații, statistici, link-ul QR nu va mai funcționa. Se șterg și conturile
+              de acces ale restaurantului (proprietar, manager, ospătari). <strong style={{ color: "#E08C8C" }}>Ireversibil.</strong>{" "}
               Scrie <strong style={{ color: "#E08C8C" }}>{name}</strong> ca să confirmi.
             </p>
             <input
