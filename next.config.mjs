@@ -1,21 +1,40 @@
 // CSP construit sa functioneze cu ce foloseste efectiv aplicatia:
-//   - style-src 'unsafe-inline': scan-client.tsx foloseste <style> inline
-//     (GLOBAL_CSS) -- fara nonce/hash configurat, un CSP strict pe style-src
-//     ar rupe pagina de scanare. 'unsafe-inline' pe style e mult mai putin
-//     riscant decat pe script (nu poate executa cod), acceptabil aici.
-//   - fonts.googleapis.com / fonts.gstatic.com: fontul Cormorant Garamond +
-//     Inter, incarcat via @import in acelasi <style>.
-//   - script-src 'self': Next.js serveste JS-ul din chunk-uri same-origin,
-//     nu inline -- nu are nevoie de 'unsafe-inline'/'unsafe-eval'.
-// next build + testarea paginii /r/[slug] dupa activare e recomandata
-// inainte de a stringe CSP-ul si mai mult.
+//   - script-src 'unsafe-inline': Next.js (App Router) injecteaza scripturi
+//     inline pentru hidratare (self.__next_f.push). Fara asta, paginile nu se
+//     hidrateaza si formularele de login nu functioneaza. O varianta mai
+//     stricta (CSP cu nonce, generat in proxy.ts) se poate face ulterior.
+//   - 'unsafe-eval' DOAR in development (Next dev are nevoie de el).
+//   - connect-src: login-ul (signInWithPassword / signInWithOtp / verifyOtp)
+//     ruleaza in browser si apeleaza Supabase direct. Fara domeniul Supabase
+//     aici, browserul blocheaza cererea si apare eroarea "Email sau parola
+//     incorecta", chiar daca datele sunt corecte.
+//   - style-src 'unsafe-inline': scan-client.tsx foloseste <style> inline.
+//   - fonts.googleapis.com / fonts.gstatic.com: Cormorant Garamond + Inter.
+
+const isDev = process.env.NODE_ENV !== "production";
+
+// Domeniul exact al proiectului Supabase, luat din variabila de mediu,
+// plus wildcard ca plasa de siguranta.
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
+const supabaseHost = supabaseUrl ? new URL(supabaseUrl).host : "";
+
+const connectSrc = [
+  "'self'",
+  supabaseHost ? `https://${supabaseHost}` : null,
+  supabaseHost ? `wss://${supabaseHost}` : null,
+  "https://*.supabase.co",
+  "wss://*.supabase.co",
+]
+  .filter(Boolean)
+  .join(" ");
+
 const CSP = [
   "default-src 'self'",
-  "script-src 'self'",
+  `script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ""}`,
   "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
   "font-src 'self' https://fonts.gstatic.com data:",
-  "img-src 'self' data: https:",
-  "connect-src 'self'",
+  "img-src 'self' data: blob: https:",
+  `connect-src ${connectSrc}`,
   "frame-ancestors 'none'",
   "base-uri 'self'",
   "form-action 'self'",
@@ -35,10 +54,9 @@ const nextConfig = {
     return [
       {
         // Se aplica pe toate rutele -- pagina publica de scanare si API-urile
-        // procesueaza date personale, deci merita aceleasi headere peste tot,
-        // nu doar pe panourile /admin-x7k2 si /gest-x4p7 (acelea au deja
-        // propria protectie in proxy.ts, care e despre autentificare, nu
-        // despre headere HTTP).
+        // proceseaza date personale, deci merita aceleasi headere peste tot.
+        // Panourile /admin-x7k2 si /gest-x4p7 au in plus protectia de
+        // autentificare din proxy.ts.
         source: "/:path*",
         headers: SECURITY_HEADERS,
       },
