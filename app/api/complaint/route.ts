@@ -3,6 +3,7 @@ import { supabaseAdmin } from "@/lib/supabase";
 import { resend } from "@/lib/resend";
 import { analyzeComplaint } from "@/lib/complaint-ai";
 import { getClientIp, hashIp } from "@/lib/request-meta";
+import { alertRecipients } from "@/lib/emails";
 import {
   wrapEmailHtml,
   restaurantHeaderHtml,
@@ -147,6 +148,12 @@ export async function POST(req: Request) {
       return NextResponse.json({ success: true, complaintId: complaint.id });
     }
 
+    const recipients = alertRecipients(restaurant.alert_email);
+    if (recipients.length === 0) {
+      console.error("Reclamatia s-a salvat, dar restaurantul nu are nicio adresa valida de alerta:", restaurantId);
+      return NextResponse.json({ success: true, complaintId: complaint.id });
+    }
+
     try {
       const emailLines = [
         `Ai primit o reclamație nouă prin formularul de feedback.`,
@@ -206,7 +213,7 @@ export async function POST(req: Request) {
 
       const { data: emailData, error: emailError } = await resend.emails.send({
         from: process.env.RESEND_FROM_EMAIL || "feedback@resend.dev",
-        to: restaurant.alert_email,
+        to: recipients,
         subject: `Reclamație nouă — ${restaurant.name}${analysis ? `: ${analysis.summary}` : ""}`,
         text: emailLines.join("\n"),
         html,
