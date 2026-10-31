@@ -13,6 +13,7 @@ import {
   ctaButtonHtml,
 } from "@/lib/email-html";
 import { isAuthorizedCronRequest, sanitizeFromName } from "@/lib/request-meta";
+import { alertRecipients } from "@/lib/emails";
 
 // Vezi nota din weekly-themes -- acelasi motiv pentru plafonul de concurenta.
 const CONCURRENCY = 15;
@@ -37,7 +38,8 @@ export async function POST(req: Request) {
   }
 
   async function processRestaurant(restaurant: { id: string; name: string; alert_email: string | null }): Promise<Result> {
-    if (!restaurant.alert_email) {
+    const recipients = alertRecipients(restaurant.alert_email);
+    if (recipients.length === 0) {
       return { restaurantId: restaurant.id, sent: false, error: "fara alert_email" };
     }
 
@@ -95,7 +97,7 @@ export async function POST(req: Request) {
 
       const { error: sendError } = await resend.emails.send({
         from: `${sanitizeFromName(restaurant.name)} <${fromAddress}>`,
-        to: restaurant.alert_email,
+        to: recipients,
         subject: `Raport lunar — ${restaurant.name}`,
         text: `Raport pentru ${report.periodLabel}: ${report.totalScans} scanari, ${report.totalComplaints} reclamatii (${report.complaintRatePct}%). Deschide panoul: https://scanvogue.ro/gest-x4p7`,
         html,
