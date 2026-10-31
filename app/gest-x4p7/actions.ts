@@ -3,6 +3,7 @@
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { getServerClient } from "@/lib/supabase-server";
+import { alertRecipients } from "@/lib/emails";
 
 export async function signOutOwner() {
   const supabase = await getServerClient();
@@ -82,7 +83,10 @@ export async function sendComplaintReply(complaintId: string, replyText: string)
   const { error: emailError } = await resend.emails.send({
     from: `${sanitizeFromName(restaurantName)} <${fromAddress}>`,
     to: complaint.contact_email,
-    replyTo: restaurant?.alert_email || undefined,
+    replyTo: (() => {
+      const recipients = alertRecipients(restaurant?.alert_email);
+      return recipients.length > 0 ? recipients : undefined;
+    })(),
     subject: `Am citit mesajul tău — ${restaurantName}`,
     text: [
       displayName ? `Bună ${displayName},` : "Bună,",
