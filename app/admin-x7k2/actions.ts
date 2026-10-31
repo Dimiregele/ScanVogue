@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { getServerClient } from "@/lib/supabase-server";
 import { supabaseAdmin } from "@/lib/supabase";
+import { parseEmailList } from "@/lib/emails";
 
 function slugify(name: string): string {
   return name
@@ -75,12 +76,21 @@ export async function createRestaurant(formData: FormData) {
 
   const name = (formData.get("name") as string)?.trim();
   const googleReviewUrl = (formData.get("googleReviewUrl") as string)?.trim();
-  const alertEmail = (formData.get("alertEmail") as string)?.trim();
   const subtitle = (formData.get("subtitle") as string)?.trim() || null;
 
-  if (!name || !googleReviewUrl || !alertEmail) {
-    throw new Error("Nume, link Google Reviews si email de alerta sunt obligatorii.");
+  // Campul accepta mai multe adrese (virgula, spatiu sau rand nou). Se
+  // salveaza in alert_email ca lista separata prin virgula, iar mai jos se
+  // creeaza cate un cont de acces pentru fiecare adresa.
+  const { emails, invalid } = parseEmailList(formData.get("alertEmail") as string);
+
+  if (!name || !googleReviewUrl || emails.length === 0) {
+    throw new Error("Nume, link Google Reviews si cel putin un email de alerta sunt obligatorii.");
   }
+  if (invalid.length > 0) {
+    throw new Error(`Adrese de email invalide: ${invalid.join(", ")}`);
+  }
+
+  const alertEmail = emails.join(", ");
 
   const baseSlug = slugify(name);
   // daca slug-ul exista deja, adaugam un sufix scurt ca sa evitam conflictul
@@ -131,9 +141,14 @@ export async function createRestaurant(formData: FormData) {
     }
   }
 
-  const ownerId = await ensureOwnerAccount(alertEmail);
-  if (ownerId && restaurantId) {
-    await linkOwnerToRestaurant(ownerId, restaurantId);
+  // Cate un cont de acces pentru fiecare adresa, legat de restaurant.
+  if (restaurantId) {
+    for (const email of emails) {
+      const userId = await ensureOwnerAccount(email);
+      if (userId) {
+        await linkOwnerToRestaurant(userId, restaurantId);
+      }
+    }
   }
 
   redirect("/admin-x7k2");
