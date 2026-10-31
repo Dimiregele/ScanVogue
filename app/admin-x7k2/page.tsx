@@ -109,12 +109,20 @@ export default async function AdminHome() {
             <input name="name" placeholder="Nume restaurant *" required className="admin-input" style={inputStyle} />
             <input name="subtitle" placeholder="Subtitlu (ex: Restaurant & Lounge)" className="admin-input" style={inputStyle} />
             <input name="googleReviewUrl" placeholder="Link Google Reviews *" required className="admin-input" style={inputStyle} />
-            <input name="alertEmail" type="email" placeholder="Email pentru alerte reclamații *" required className="admin-input" style={inputStyle} />
+            <textarea
+              name="alertEmail"
+              placeholder={"Email-uri pentru alerte reclamații * (poți pune mai multe, separate prin virgulă sau pe rânduri noi)"}
+              required
+              rows={3}
+              className="admin-input"
+              style={{ ...inputStyle, resize: "vertical", fontFamily: "inherit" }}
+            />
             <button type="submit" className="admin-btn admin-btn-primary" style={primaryButtonStyle}>Adaugă restaurant</button>
           </form>
           <p style={{ color: ADMIN_COLORS.textFaint, fontSize: 12, marginTop: 10, marginBottom: 0, lineHeight: 1.5 }}>
-            La salvare, contul de proprietar pentru acest email se creează automat —
-            nu mai e nevoie de niciun pas separat.
+            La salvare, se creează automat câte un cont de acces pentru fiecare adresă
+            de email (proprietar, manager, ospătari) — nu mai e nevoie de niciun pas
+            separat. Toate adresele primesc alertele de reclamații.
           </p>
         </section>
 
