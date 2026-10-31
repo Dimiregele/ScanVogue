@@ -13,6 +13,7 @@ import {
   ctaButtonHtml,
 } from "@/lib/email-html";
 import { isAuthorizedCronRequest, sanitizeFromName } from "@/lib/request-meta";
+import { alertRecipients } from "@/lib/emails";
 
 // Fereastra de analiza e mai lunga decat cadenta de trimitere in mod
 // deliberat: trimitem saptamanal (ca sa fie un memento constant, nu doar
@@ -83,7 +84,8 @@ export async function POST(req: Request) {
       });
       if (insertError) throw insertError;
 
-      if (!restaurant.alert_email) {
+      const recipients = alertRecipients(restaurant.alert_email);
+      if (recipients.length === 0) {
         return { restaurantId: restaurant.id, sent: false, themesFound: themes.length, error: "fara alert_email" };
       }
 
@@ -118,7 +120,7 @@ export async function POST(req: Request) {
 
       const { error: sendError } = await resend.emails.send({
         from: `${sanitizeFromName(restaurant.name)} <${fromAddress}>`,
-        to: restaurant.alert_email,
+        to: recipients,
         subject: `Teme recurente — ${restaurant.name}`,
         text: `Teme recurente din ultimele ${ANALYSIS_WINDOW_DAYS} zile: ${themes.map((t) => `${t.theme} (${t.count}x)`).join(", ")}. Deschide panoul: https://scanvogue.ro/gest-x4p7`,
         html,
